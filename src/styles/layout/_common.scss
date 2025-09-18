@@ -25,8 +25,16 @@ main {
     }
 }
 
-#wrapper{
+#wrapper {
     overflow: hidden;
+}
+
+#bgVideo {
+    position: fixed;
+    width: 100vw;
+    height: 100dvh;
+    object-fit: cover;
+
 }
 
 .container {
