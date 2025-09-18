@@ -1,313 +1,338 @@
-main {
-    position: relative;
+  :root {
+      --vh: 100vh;
+      --section-h: 90vh;
+      --stage-h: 100vh;
+  }
 
-    &::before {
-        content: '';
-        position: absolute;
-        z-index: -1;
-        inset: 0;
-        height: 100%;
-        width: 100%;
-        background: linear-gradient(to top, #000 0%, #0000 40%);
-        opacity: 0.3;
-        z-index: 0;
-    }
+  main {
+      position: relative;
 
-    &::after {
-        content: '';
-        position: absolute;
-        z-index: -1;
-        bottom: 0;
-        left: 0;
-        height: 5%;
-        width: 100%;
-        background: linear-gradient(to top, #000 0%, #0000 40%);
-    }
-}
+      &::before {
+          content: '';
+          position: absolute;
+          z-index: 1;
+          inset: 0;
+          height: 100%;
+          width: 100%;
+          background: linear-gradient(to top, #000 0%, #0000 40%);
+          opacity: 0.3;
+      }
 
-#wrapper {
-    overflow: hidden;
-}
+      &::after {
+          content: '';
+          position: absolute;
+          z-index: 1;
+          bottom: 0;
+          left: 0;
+          height: 4%;
+          width: 100%;
+          background: linear-gradient(to top, #000 0%, #0000 100%);
+      }
+  }
 
-.container {
-    max-width: 1440px;
-    width: 100%;
-    height: 100%;
-    margin: 0 auto;
-    padding: 0 48px;
+  .stage {
+      position: sticky;
+      top: 0;
+      height: var(--stage-h);
+      overflow: clip;
+      z-index: 0;
+  }
 
-    @include media ("<tablet") {
-        padding: 0 16px;
-    }
-}
+  .video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+  }
 
-#scrolly-video {
-    position: fixed !important;
-    z-index: -1;
-}
+  .container {
+      max-width: 1440px;
+      width: 100%;
+      height: 100%;
+      margin: 0 auto;
+      padding: 0 48px;
 
-.gray_text {
-    color: $gray;
-}
+      @include media ("<tablet") {
+          padding: 0 16px;
+      }
+  }
 
-.btn {
-    border: 1px solid transparent;
-    padding: 8px 32px;
-    box-sizing: border-box;
-    font-size: 16px;
-    @include font-with-spacing(16px);
-    text-transform: uppercase;
-    box-shadow: 0px 4px 20px 0px #FFFFFF40;
+  .gray_text {
+      color: $gray;
+  }
 
-    span {
-        color: $white;
-        text-shadow:
-            0 0 5px #FFFFFF80,
-            0 0 10px #FFFFFF80,
-            0 0 20px #FFFFFF80;
-    }
+  .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+  }
 
-    &_primary {
-        border: 1px solid #D1D3FF;
-        background-color: transparent;
-    }
+  .btn {
+      border: 1px solid transparent;
+      padding: 8px 32px;
+      box-sizing: border-box;
+      font-size: 16px;
+      @include font-with-spacing(16px);
+      text-transform: uppercase;
+      box-shadow: 0px 4px 20px 0px #FFFFFF40;
 
-    &_secondary {
-        background-color: $white;
-        color: $black;
-    }
+      span {
+          color: $white;
+          text-shadow:
+              0 0 5px #FFFFFF80,
+              0 0 10px #FFFFFF80,
+              0 0 20px #FFFFFF80;
+      }
 
-}
+      &_primary {
+          border: 1px solid #D1D3FF;
+          background-color: transparent;
+      }
 
-.section {
-    position: relative;
-    z-index: 5;
-    height: 100dvh;
-    padding-top: 130px;
-    @include adaptive-value("padding-bottom", 50, 30, 1);
-    opacity: 0;
-    transition: opacity .9s ease-out;
+      &_secondary {
+          background-color: $white;
+          color: $black;
+      }
 
-    &.active {
-        opacity: 1;
-        transition: opacity .9s ease-in;
-    }
+  }
 
-    &.first-section {
+  .section {
+      position: relative;
+      z-index: 5;
+      height: var(--section-h);
+      padding-top: 130px;
+      @include adaptive-value("padding-bottom", 50, 30, 1);
+      opacity: 0;
+      transition: opacity .9s ease-out;
 
-        .content {
-            grid-template-columns: repeat(3, 1fr);
-        }
+      &.active {
+          opacity: 1;
+          transition: opacity .9s ease-in;
+      }
 
-        .right_col {
-            max-width: 353px;
-        }
-    }
+      &.first-section {
 
-    &.second-section {
-        .right_col {
-            max-width: 425px;
-        }
-    }
+          .content {
+              grid-template-columns: repeat(3, 1fr);
+          }
 
-    &.third-section {
-        .right_col {
-            margin-top: auto;
-            @include adaptive-value("margin-bottom", 125, 25, 1);
-            max-width: 425px;
-            overflow: hidden;
+          .right_col {
+              max-width: 353px;
+          }
+      }
 
-            &::after {
-                content: url(../images/line.svg);
-                display: inline-block;
-                height: 1px;
-                margin-top: 12px;
-            }
+      &.second-section {
+          .right_col {
+              max-width: 425px;
+          }
+      }
 
-        }
-    }
+      &.third-section {
+          .right_col {
+              margin-top: auto;
+              @include adaptive-value("margin-bottom", 125, 25, 1);
+              max-width: 425px;
+              overflow: hidden;
 
-    &.fourth-section {
-        .right_col {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            max-width: 430px;
-            @include adaptive-value("margin-bottom", 125, 25, 1);
+              &::after {
+                  content: url(../images/line.svg);
+                  display: inline-block;
+                  height: 1px;
+                  margin-top: 12px;
+              }
 
-            p {
-                &:first-child {
-                    max-width: 340px;
-                    margin-left: auto;
-                }
+          }
+      }
 
-                &:last-child {
-                    max-width: 431px;
-                    overflow: hidden;
+      &.fourth-section {
+          .right_col {
+              display: flex;
+              flex-direction: column;
+              justify-content: space-between;
+              max-width: 430px;
+              @include adaptive-value("margin-bottom", 125, 25, 1);
 
-                    &::after {
-                        content: url(../images/line.svg);
-                        display: inline-block;
-                        height: 1px;
-                        margin-top: 12px;
-                    }
-                }
-            }
-        }
-    }
+              p {
+                  &:first-child {
+                      max-width: 340px;
+                      margin-left: auto;
+                  }
 
-    &.fifth-section {
-        .right_col {
-            margin-top: auto;
-            @include adaptive-value("margin-bottom", 125, 25, 1);
-            max-width: 366px;
+                  &:last-child {
+                      max-width: 431px;
+                      overflow: hidden;
 
-            p {
-                &:last-child {
-                    overflow: hidden;
+                      &::after {
+                          content: url(../images/line.svg);
+                          display: inline-block;
+                          height: 1px;
+                          margin-top: 12px;
+                      }
+                  }
+              }
+          }
+      }
 
-                    &::after {
-                        content: url(../images/line.svg);
-                        display: inline-block;
-                        height: 1px;
-                        margin-top: 12px;
-                    }
-                }
-            }
-        }
-    }
+      &.fifth-section {
+          .right_col {
+              margin-top: auto;
+              @include adaptive-value("margin-bottom", 125, 25, 1);
+              max-width: 366px;
 
-    &.sixth-section {
-        .right_col {
-            @include adaptive-value("margin-bottom", 125, 25, 1);
-            max-width: 340px;
-        }
-    }
+              p {
+                  &:last-child {
+                      overflow: hidden;
 
-    &.seventh-section {
-        .content {
-            display: flex;
-            position: relative;
-            align-items: center;
-            justify-content: center;
-        }
+                      &::after {
+                          content: url(../images/line.svg);
+                          display: inline-block;
+                          height: 1px;
+                          margin-top: 12px;
+                      }
+                  }
+              }
+          }
+      }
 
-        .left_col {
-            position: absolute;
-            left: 0;
-            @include adaptive-value("bottom", 50, 30, 1);
-        }
+      &.sixth-section {
+          .right_col {
+              @include adaptive-value("margin-bottom", 125, 25, 1);
+              max-width: 340px;
+          }
+      }
 
-        .form_wrap {
-            display: flex;
-            flex-direction: column;
+      &.seventh-section {
+          .content {
+              display: flex;
+              position: relative;
+              align-items: center;
+              justify-content: center;
+          }
 
-            row-gap: 36px;
-            max-width: 425px;
-            width: 100%;
-            margin: 0 auto;
+          .left_col {
+              position: absolute;
+              left: 0;
+              @include adaptive-value("bottom", 50, 30, 1);
+          }
 
-        }
+          .form_wrap {
+              display: flex;
+              flex-direction: column;
 
-        h2 {
-            font-size: 24px;
-            text-align: center;
-            line-height: 100%;
-            @include font-with-spacing(24px)
-        }
+              row-gap: 36px;
+              max-width: 425px;
+              width: 100%;
+              margin: 0 auto;
 
-        form {
-            display: flex;
-            flex-direction: column;
-            row-gap: 18px;
-            width: 100%;
+          }
 
-            .input_wrap {
-                overflow: hidden;
+          h2 {
+              font-size: 24px;
+              text-align: center;
+              line-height: 100%;
+              @include font-with-spacing(24px)
+          }
 
-                &::after {
-                    content: url(../images/line_2.svg);
-                    display: flex;
-                    margin-left: -10px;
-                }
-            }
+          form {
+              display: flex;
+              flex-direction: column;
+              row-gap: 18px;
+              width: 100%;
 
-            input {
-                width: 100%;
-                background-color: transparent;
-                border: none;
-                font-size: 19px;
-                line-height: calc(22 / 19);
-                @include font-with-spacing(19px);
-                color: $white;
+              .input_wrap {
+                  overflow: hidden;
 
-                @include placeholder {
-                    font-size: 19px;
-                    line-height: calc(22 / 19);
-                    @include font-with-spacing(19px);
-                    color: $white;
-                }
-            }
-        }
-    }
+                  &::after {
+                      content: url(../images/line_2.svg);
+                      display: flex;
+                      margin-left: -10px;
+                  }
+              }
 
-    .content {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        height: 100%;
-    }
+              input {
+                  width: 100%;
+                  background-color: transparent;
+                  border: none;
+                  font-size: 19px;
+                  line-height: calc(22 / 19);
+                  @include font-with-spacing(19px);
+                  color: $white;
 
-    .left_col {
-        margin-top: auto;
-        max-width: 170px;
-        width: 100%;
+                  @include placeholder {
+                      font-size: 19px;
+                      line-height: calc(22 / 19);
+                      @include font-with-spacing(19px);
+                      color: $white;
+                  }
+              }
+          }
+      }
 
-        p {
-            font-size: 19px;
-            line-height: calc(22 / 19);
-            @include font-with-spacing(19px)
-        }
+      .content {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          height: 100%;
+      }
 
-        .toggle-sound {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border: none;
-            background-color: transparent;
-            margin-top: 16px;
-            padding: 0;
+      .left_col {
+          margin-top: auto;
+          max-width: 170px;
+          width: 100%;
 
-            img {
-                width: 18.5px;
-                height: 17.8px;
-            }
+          p {
+              font-size: 19px;
+              line-height: calc(22 / 19);
+              @include font-with-spacing(19px)
+          }
 
-            span {
-                text-shadow:
-                    0 0 5px #FFFFFF80,
-                    0 0 10px #FFFFFF80,
-                    0 0 20px #FFFFFF80;
-            }
-        }
-    }
+          .toggle-sound {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              border: none;
+              background-color: transparent;
+              margin-top: 16px;
+              padding: 0;
 
-    .middle_col {
-        max-width: 547px;
-        width: 100%;
-        margin-top: auto;
-        margin-bottom: 130px;
-    }
+              img {
+                  width: 18.5px;
+                  height: 17.8px;
+              }
 
-    .right_col {
+              span {
+                  text-shadow:
+                      0 0 5px #FFFFFF80,
+                      0 0 10px #FFFFFF80,
+                      0 0 20px #FFFFFF80;
+              }
+          }
+      }
 
-        width: 100%;
-        text-align: end;
-        margin-left: auto;
+      .middle_col {
+          max-width: 547px;
+          width: 100%;
+          margin-top: auto;
+          margin-bottom: 130px;
+      }
 
-        p {
-            font-size: 22px;
-            line-height: calc(24 / 22);
-            @include font-with-spacing(22px)
-        }
-    }
-}
+      .right_col {
+
+          width: 100%;
+          text-align: end;
+          margin-left: auto;
+
+          p {
+              font-size: 22px;
+              line-height: calc(24 / 22);
+              @include font-with-spacing(22px)
+          }
+      }
+  }
