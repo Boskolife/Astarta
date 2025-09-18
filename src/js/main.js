@@ -1,6 +1,6 @@
 new ScrollyVideo({
     scrollyVideoContainer: "scrolly-video",
-    src: "./video/astarta-fixed.mp4"
+    src: "./video/astarta-fixed-2.mp4"
   });
 
 // import { gsap } from 'gsap';
@@ -23,3 +23,4 @@ new ScrollyVideo({
 //     },
 //   });
 // });
+
