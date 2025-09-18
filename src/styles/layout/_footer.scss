@@ -1,1 +1,19 @@
-#footer {}
+.footer {
+    background-color: $black;
+    padding: 52px 0;
+
+    &_content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    &_link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 68px;
+        height: 68px;
+    }
+}

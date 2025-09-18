@@ -2,7 +2,7 @@
 // Color calculator - http://razorjam.github.io/sasscolourfunctioncalculator/
 // Color names - http://name-of-color.com/
 
-$black: #000;
+$black: #010101;
 $white: #DDDDDD;
 $gray: #9D9D9D;
 
@@ -19,7 +19,7 @@ serif;
 $rem-base: 16px;
 
 // Body
-$base-text-color: $black !default;
+$base-text-color: $white !default;
 $base-background-color: $black !default;
 $font-size-base: 16px !default;
 $line-height-base: 1.2 !default;

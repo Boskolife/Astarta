@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "gsap": "^3.13.0",
+    "scrolly-video": "^0.0.24",
     "swiper": "^11.0.3"
   }
 }

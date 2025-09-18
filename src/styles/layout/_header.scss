@@ -1,1 +1,17 @@
-#header {}
+.header {
+    position: fixed;
+    z-index: 10;
+    width: 100%;
+    padding-top: 44px;
+
+    @include media ("<tablet") {
+        padding-top: 25px;
+    }
+
+    &_content{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 30px;
+    }
+}
