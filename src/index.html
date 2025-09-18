@@ -6,14 +6,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex,nofollow">
 
-  <title>Test</title>
+  <title>Astarta</title>
   <link rel="stylesheet" href="/styles/main.scss">
-  <script type="module" src="/js/main.ts" defer></script>
+  <script type="module" src="/js/main.js" defer></script>
 </head>
 
 <body>
   {{> header }}
   <main>
+    <video id="bg-video" preload="auto" muted>
+      <source src="./video/astarta-video.mp4" type="video/mp4">
+    </video>
+
+    <div class="content">
+      <p>Скролли вниз → видео идёт вперёд</p>
+      <p>Скролли вверх → видео идёт назад</p>
+    </div>
 
   </main>
 </body>
