@@ -29,14 +29,6 @@ main {
     overflow: hidden;
 }
 
-// #bgVideo {
-//     position: fixed;
-//     width: 100vw;
-//     height: 100dvh;
-//     object-fit: cover;
-
-// }
-
 .container {
     max-width: 1440px;
     width: 100%;
@@ -93,6 +85,13 @@ main {
     height: 100dvh;
     padding-top: 130px;
     @include adaptive-value("padding-bottom", 50, 30, 1);
+    opacity: 0;
+    transition: opacity .9s ease-out;
+
+    &.active {
+        opacity: 1;
+        transition: opacity .9s ease-in;
+    }
 
     &.first-section {
 
