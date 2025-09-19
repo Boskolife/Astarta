@@ -4,13 +4,34 @@
       --stage-h: 100vh;
   }
 
+  html {
+      &::-webkit-scrollbar {
+          display: none;
+      }
+
+      scrollbar-width: 0;
+  }
+
   body {
-      height: var(--stage-h);
+      min-height: var(--stage-h);
+      overflow-x: hidden; // Отключаем горизонтальный скролл
+      scroll-behavior: smooth;
+      touch-action: pan-y; // Разрешаем вертикальный скролл для футера
+      -webkit-overflow-scrolling: touch;
+      transition: overflow 0.3s ease; // Плавный переход между режимами
   }
 
   main {
       position: relative;
-      height: var(--stage-h);
+      height: var(--stage-h); // Возвращаем к одному экрану
+      user-select: none; // Отключаем выделение текста
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+
+      @include media ("<tablet") {
+          height: var(--stage-h);
+      }
 
       &::before {
           content: '';
@@ -62,7 +83,9 @@
       @include adaptive-value("padding-bottom", 50, 30, 1);
       position: absolute;
       top: 0;
-      left: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
 
       @include media ("<tablet") {
           padding: 0 16px;
@@ -126,7 +149,8 @@
       p {
           font-size: 19px;
           line-height: calc(22 / 19);
-          @include font-with-spacing(19px)
+          @include font-with-spacing(19px);
+          transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
       }
 
       .toggle-sound {
@@ -157,16 +181,19 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      z-index: 5;
+      z-index: -1;
       height: var(--section-h);
       width: 100%;
 
-      opacity: 1;
-      transition: opacity .9s ease-out;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
 
       &.active {
+          z-index: 5;
           opacity: 1;
-          transition: opacity .9s ease-in;
+          visibility: visible;
+          transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
       }
 
       &.first-section {
@@ -333,8 +360,6 @@
           grid-template-columns: 1fr;
           height: 100%;
       }
-
-
 
       .middle_col {
           max-width: 547px;

@@ -56,38 +56,95 @@ const hud = {
   time: document.getElementById('hud-time'),
 };
 
-let sectionRects = [];
-let lastScrollY = window.scrollY;
+// Виртуальный скролл
+let virtualScrollY = 0;
+let maxVirtualScroll = 0;
 let scrollVel = 0;
 let smoothedTime = 0;
 let activeSeg = 0;
+let lastActiveSeg = -1;
 let isPageVisible = true;
 let animationId = null;
+let isInFooterMode = false; // Флаг для режима футера
 
-function computeSectionRects() {
-  sectionRects = $sections.map((el) => ({
-    el,
-    top: el.offsetTop,
-    height: el.offsetHeight,
-    bottom: el.offsetTop + el.offsetHeight,
-  }));
-}
+// Настройки виртуального скролла
+const SCROLL_SENSITIVITY = 0.5; // Чувствительность скролла
+const SCROLL_DAMPING = 0.08; // Затухание скорости
+const TOTAL_SEGMENTS = SEGMENTS.length;
+const MIN_SCROLL_THRESHOLD = 0.1; // Минимальный порог для начала скролла
+const FOOTER_TRANSITION_HEIGHT = 200; // Высота перехода к футеру
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 const invlerp = (a, b, v) => (v - a) / (b - a);
 
 function detectActiveSection() {
-  const y = window.scrollY + window.innerHeight / 2;
-  let idx = activeSeg;
-  for (let i = 0; i < sectionRects.length; i++) {
-    const r = sectionRects[i];
-    if (y >= r.top && y < r.bottom) {
-      idx = Math.min(i, SEGMENTS.length - 1);
-      break;
+  // Проверяем, находимся ли мы в режиме футера
+  if (virtualScrollY >= maxVirtualScroll) {
+    if (!isInFooterMode) {
+      isInFooterMode = true;
+      // Переключаемся в режим футера
+      document.body.style.overflow = 'auto';
     }
+    activeSeg = TOTAL_SEGMENTS - 1; // Показываем последнюю секцию
+    return;
   }
+  
+  if (isInFooterMode) {
+    isInFooterMode = false;
+    // Возвращаемся к режиму видео
+    document.body.style.overflow = 'hidden';
+  }
+  
+  // Определяем активный сегмент на основе виртуального скролла
+  const scrollProgress = Math.max(0, Math.min(1, virtualScrollY / maxVirtualScroll));
+  
+  // Определяем активный сегмент на основе прогресса виртуального скролла
+  let idx = Math.floor(scrollProgress * TOTAL_SEGMENTS);
+  
+  // Ограничиваем индекс диапазоном сегментов
+  idx = Math.max(0, Math.min(idx, TOTAL_SEGMENTS - 1));
+  
   activeSeg = idx;
+}
+
+function updateSectionVisibility() {
+  // Обновляем видимость только если активный сегмент изменился
+  if (activeSeg !== lastActiveSeg) {
+    $sections.forEach((section, index) => {
+      const segValue = parseInt(section.getAttribute('data-seg'));
+      
+      if (segValue === activeSeg) {
+        // Показываем активную секцию
+        section.style.opacity = '1';
+        section.style.visibility = 'visible';
+        section.classList.add('active');
+      } else {
+        // Скрываем неактивные секции
+        section.style.opacity = '0';
+        section.style.visibility = 'hidden';
+        section.classList.remove('active');
+      }
+    });
+    
+    // Управляем видимостью текста в left_col
+    const leftCol = document.querySelector('.left_col');
+    if (leftCol) {
+      const leftColText = leftCol.querySelector('p');
+      if (leftColText) {
+        // Скрываем текст в последнем сегменте (секция с формой)
+        if (activeSeg === TOTAL_SEGMENTS - 1) {
+          leftColText.style.opacity = '0';
+          leftColText.style.visibility = 'hidden';
+        } else {
+          leftColText.style.opacity = '1';
+          leftColText.style.visibility = 'visible';
+        }
+      }
+    }
+    
+    lastActiveSeg = activeSeg;
+  }
 }
 
 function tick() {
@@ -98,46 +155,64 @@ function tick() {
   }
 
   try {
-    const dy = window.scrollY - lastScrollY;
-    lastScrollY = window.scrollY;
-    scrollVel = lerp(scrollVel, dy, 0.25);
+    // Применяем затухание к скорости скролла
+    scrollVel *= (1 - SCROLL_DAMPING);
+    
+    // Обновляем виртуальную позицию скролла
+    virtualScrollY += scrollVel;
+    
+    // Если мы в режиме футера, разрешаем скролл дальше
+    if (isInFooterMode) {
+      // В режиме футера не ограничиваем скролл
+      virtualScrollY = Math.max(virtualScrollY, maxVirtualScroll);
+    } else {
+      // В обычном режиме ограничиваем скролл
+      virtualScrollY = clamp(virtualScrollY, 0, maxVirtualScroll);
+    }
 
     detectActiveSection();
+    updateSectionVisibility();
 
-    const r = sectionRects[activeSeg];
-    const y = window.scrollY;
-    let local = 0;
-    if (r && r.height > 0) {
-      local = clamp(invlerp(r.top, r.bottom, y + window.innerHeight / 2), 0, 1);
+    // В режиме футера не управляем скроллом программно
+    if (!isInFooterMode) {
+      window.scrollTo(0, 0);
     }
 
-    const [t0, t1] = SEGMENTS[activeSeg];
-    let targetTime = lerp(t0, t1, local);
+    // Вычисляем время видео только если не в режиме футера
+    if (!isInFooterMode) {
+      const scrollProgress = Math.max(0, Math.min(1, virtualScrollY / maxVirtualScroll));
+      
+      // Определяем локальный прогресс внутри текущего сегмента
+      const segmentProgress = (scrollProgress * TOTAL_SEGMENTS) % 1;
+      
+      const [t0, t1] = SEGMENTS[activeSeg];
+      let targetTime = lerp(t0, t1, segmentProgress);
 
-    if (VELOCITY_BOOST !== 0) {
-      const segLen = Math.abs(t1 - t0) || 0.001;
-      const dir = Math.sign(scrollVel);
-      targetTime +=
-        dir * Math.min(Math.abs(scrollVel) / 1000, 1) * segLen * VELOCITY_BOOST;
-      targetTime = clamp(targetTime, Math.min(t0, t1), Math.max(t0, t1));
-    }
-
-    smoothedTime = lerp(smoothedTime || t0, targetTime, LERP_ALPHA);
-
-    if (SNAP_TO_FRAME && SOURCE_FPS > 0) {
-      const step = 1 / SOURCE_FPS;
-      smoothedTime = Math.round(smoothedTime / step) * step;
-    }
-
-    if ($video && $video.readyState >= 2) {
-      if (!$video.seeking) {
-        $video.currentTime = smoothedTime;
+      if (VELOCITY_BOOST !== 0) {
+        const segLen = Math.abs(t1 - t0) || 0.001;
+        const dir = Math.sign(scrollVel);
+        targetTime +=
+          dir * Math.min(Math.abs(scrollVel) / 1000, 1) * segLen * VELOCITY_BOOST;
+        targetTime = clamp(targetTime, Math.min(t0, t1), Math.max(t0, t1));
       }
-    }
 
-    if (hud.seg) hud.seg.textContent = String(activeSeg);
-    if (hud.prog) hud.prog.textContent = local.toFixed(2);
-    if (hud.time) hud.time.textContent = smoothedTime.toFixed(2);
+      smoothedTime = lerp(smoothedTime || t0, targetTime, LERP_ALPHA);
+
+      if (SNAP_TO_FRAME && SOURCE_FPS > 0) {
+        const step = 1 / SOURCE_FPS;
+        smoothedTime = Math.round(smoothedTime / step) * step;
+      }
+
+      if ($video && $video.readyState >= 2) {
+        if (!$video.seeking) {
+          $video.currentTime = smoothedTime;
+        }
+      }
+
+      if (hud.seg) hud.seg.textContent = String(activeSeg);
+      if (hud.prog) hud.prog.textContent = segmentProgress.toFixed(2);
+      if (hud.time) hud.time.textContent = smoothedTime.toFixed(2);
+    }
   } catch (error) {
     console.warn('Animation tick error:', error);
   }
@@ -151,6 +226,78 @@ function loadVideo() {
   }
 }
 
+// Обработчики виртуального скролла
+function handleWheel(event) {
+  // Если мы в режиме футера, разрешаем стандартный скролл
+  if (isInFooterMode) {
+    return;
+  }
+  
+  event.preventDefault();
+  
+  // Получаем дельту скролла
+  const delta = event.deltaY;
+  
+  // Применяем чувствительность только если дельта больше порога
+  if (Math.abs(delta) > MIN_SCROLL_THRESHOLD) {
+    scrollVel += delta * SCROLL_SENSITIVITY;
+    
+    // Ограничиваем максимальную скорость
+    scrollVel = clamp(scrollVel, -40, 40);
+  }
+}
+
+// Тач-события для мобильных устройств
+let touchStartY = 0;
+let touchStartTime = 0;
+let lastTouchY = 0;
+let touchVelocity = 0;
+
+function handleTouchStart(event) {
+  touchStartY = event.touches[0].clientY;
+  lastTouchY = touchStartY;
+  touchStartTime = Date.now();
+  touchVelocity = 0;
+}
+
+function handleTouchMove(event) {
+  // Если мы в режиме футера, разрешаем стандартный скролл
+  if (isInFooterMode) {
+    return;
+  }
+  
+  event.preventDefault();
+  
+  const touchY = event.touches[0].clientY;
+  const deltaY = lastTouchY - touchY;
+  const currentTime = Date.now();
+  const timeDelta = currentTime - touchStartTime;
+  
+  // Вычисляем скорость тача
+  if (timeDelta > 0) {
+    touchVelocity = deltaY / timeDelta;
+  }
+  
+  // Применяем чувствительность к тач-событиям
+  scrollVel += deltaY * SCROLL_SENSITIVITY * 0.3;
+  
+  lastTouchY = touchY;
+}
+
+function handleTouchEnd(event) {
+  // Добавляем инерцию на основе скорости свайпа
+  const touchEndTime = Date.now();
+  const touchDuration = touchEndTime - touchStartTime;
+  
+  if (touchDuration < 200 && Math.abs(touchVelocity) > 0.5) {
+    // Быстрый свайп - добавляем инерцию
+    scrollVel += touchVelocity * 100;
+  }
+  
+  // Ограничиваем максимальную скорость
+  scrollVel = clamp(scrollVel, -30, 30);
+}
+
 $video.addEventListener('loadedmetadata', () => {
   const dur = $video.duration || 0;
   for (let i = 0; i < SEGMENTS.length; i++) {
@@ -158,22 +305,33 @@ $video.addEventListener('loadedmetadata', () => {
     SEGMENTS[i][1] = clamp(SEGMENTS[i][1], 0, dur);
   }
   smoothedTime = SEGMENTS[0][0] || 0;
+  
+  // Устанавливаем максимальный виртуальный скролл
+  maxVirtualScroll = window.innerHeight * TOTAL_SEGMENTS;
 });
 
-document.addEventListener('scroll', loadVideo, { once: true, passive: true });
+// Добавляем обработчики событий для виртуального скролла
+document.addEventListener('wheel', handleWheel, { passive: false });
+document.addEventListener('touchstart', handleTouchStart, { passive: true });
+document.addEventListener('touchmove', handleTouchMove, { passive: false });
+document.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+// Обработчик для переключения обратно к видео при скролле вверх в футере
+document.addEventListener('scroll', () => {
+  if (isInFooterMode && window.scrollY <= 0) {
+    isInFooterMode = false;
+    virtualScrollY = maxVirtualScroll - 1;
+    document.body.style.overflow = 'hidden';
+    window.scrollTo(0, 0);
+  }
+}, { passive: true });
+
+// Обработчики для загрузки видео
 document.addEventListener('click', loadVideo, { once: true });
 document.addEventListener('touchstart', loadVideo, {
   once: true,
   passive: true,
 });
-
-window.addEventListener(
-  'resize',
-  () => {
-    computeSectionRects();
-  },
-  { passive: true },
-);
 
 document.addEventListener('visibilitychange', () => {
   isPageVisible = !document.hidden;
@@ -184,6 +342,12 @@ function cleanup() {
     cancelAnimationFrame(animationId);
     animationId = null;
   }
+  
+  // Удаляем обработчики событий
+  document.removeEventListener('wheel', handleWheel);
+  document.removeEventListener('touchstart', handleTouchStart);
+  document.removeEventListener('touchmove', handleTouchMove);
+  document.removeEventListener('touchend', handleTouchEnd);
 }
 
 window.addEventListener('beforeunload', cleanup);
@@ -209,9 +373,15 @@ function initSoundButtons() {
 
 window.addEventListener('load', () => {
   try {
-    computeSectionRects();
     primeVideoPlayback($video);
     initSoundButtons();
+    
+    // Инициализируем виртуальный скролл
+    maxVirtualScroll = window.innerHeight * TOTAL_SEGMENTS;
+    virtualScrollY = 0;
+    activeSeg = 0;
+    updateSectionVisibility();
+    
     animationId = requestAnimationFrame(tick);
   } catch (error) {
     console.error('Initialization error:', error);

@@ -2,6 +2,11 @@
     background-color: $black;
     padding: 52px 0;
 
+    .container{
+        position: static;
+        transform: translate(0);
+    }
+
     &_content {
         display: flex;
         align-items: center;
