@@ -1,19 +1,3 @@
-import { gsap } from 'gsap';
-
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-gsap.registerPlugin(ScrollTrigger);
-
-const sections = document.querySelectorAll('.section');
-
-sections.forEach((section) => {
-  ScrollTrigger.create({
-    trigger: section,
-    start: 'top 50%',
-    end: 'bottom 30%',
-    toggleClass: { targets: section, className: 'active' },
-  });
-});
 
 const SEGMENTS = [
   [0.0, 2.5],

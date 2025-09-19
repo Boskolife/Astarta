@@ -1,11 +1,16 @@
   :root {
       --vh: 100vh;
-      --section-h: 90vh;
+      --section-h: 100vh;
       --stage-h: 100vh;
+  }
+
+  body {
+      height: var(--stage-h);
   }
 
   main {
       position: relative;
+      height: var(--stage-h);
 
       &::before {
           content: '';
@@ -53,6 +58,11 @@
       height: 100%;
       margin: 0 auto;
       padding: 0 48px;
+      padding-top: 130px;
+      @include adaptive-value("padding-bottom", 50, 30, 1);
+      position: absolute;
+      top: 0;
+      left: 0;
 
       @include media ("<tablet") {
           padding: 0 16px;
@@ -104,13 +114,54 @@
 
   }
 
+  .left_col {
+      position: absolute;
+      @include adaptive-value("bottom", 50, 30, 1);
+      left: 48px;
+      margin-top: auto;
+      max-width: 170px;
+      width: 100%;
+      z-index: 5;
+
+      p {
+          font-size: 19px;
+          line-height: calc(22 / 19);
+          @include font-with-spacing(19px)
+      }
+
+      .toggle-sound {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          border: none;
+          background-color: transparent;
+          margin-top: 16px;
+          padding: 0;
+
+          img {
+              width: 18.5px;
+              height: 17.8px;
+          }
+
+          span {
+              text-shadow:
+                  0 0 5px #FFFFFF80,
+                  0 0 10px #FFFFFF80,
+                  0 0 20px #FFFFFF80;
+          }
+      }
+  }
+
   .section {
-      position: relative;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       z-index: 5;
       height: var(--section-h);
-      padding-top: 130px;
-      @include adaptive-value("padding-bottom", 50, 30, 1);
-      opacity: 0;
+      width: 100%;
+
+      opacity: 1;
       transition: opacity .9s ease-out;
 
       &.active {
@@ -119,6 +170,7 @@
       }
 
       &.first-section {
+
 
           .content {
               grid-template-columns: repeat(3, 1fr);
@@ -278,43 +330,11 @@
 
       .content {
           display: grid;
-          grid-template-columns: repeat(2, 1fr);
+          grid-template-columns: 1fr;
           height: 100%;
       }
 
-      .left_col {
-          margin-top: auto;
-          max-width: 170px;
-          width: 100%;
 
-          p {
-              font-size: 19px;
-              line-height: calc(22 / 19);
-              @include font-with-spacing(19px)
-          }
-
-          .toggle-sound {
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              border: none;
-              background-color: transparent;
-              margin-top: 16px;
-              padding: 0;
-
-              img {
-                  width: 18.5px;
-                  height: 17.8px;
-              }
-
-              span {
-                  text-shadow:
-                      0 0 5px #FFFFFF80,
-                      0 0 10px #FFFFFF80,
-                      0 0 20px #FFFFFF80;
-              }
-          }
-      }
 
       .middle_col {
           max-width: 547px;

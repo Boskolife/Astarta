@@ -2,13 +2,18 @@
     position: fixed;
     z-index: 10;
     width: 100%;
-    padding-top: 44px;
+    margin-top: 44px;
 
     @include media ("<tablet") {
         padding-top: 25px;
     }
 
-    &_content{
+    .container {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+
+    &_content {
         display: flex;
         align-items: center;
         justify-content: space-between;
