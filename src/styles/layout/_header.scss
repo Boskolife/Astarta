@@ -1,16 +1,16 @@
 .header {
-    position: fixed;
-    z-index: 10;
-    width: 100%;
-    margin-top: 44px;
+    position: relative;
+    z-index: 20;
+    padding-top: 44px;
 
     @include media ("<tablet") {
         padding-top: 25px;
     }
 
-    .container {
-        padding-top: 0;
-        padding-bottom: 0;
+    .logo {
+        @include media ("<tablet") {
+            width: 127px;
+        }
     }
 
     &_content {
