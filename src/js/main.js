@@ -1,11 +1,33 @@
+// СИСТЕМА ДВОЙНЫХ СЕГМЕНТОВ:
+// SEGMENTS - управляют появлением секций HTML (data-seg атрибуты)
+// VIDEO_SEGMENTS - управляют воспроизведением видео (currentTime)
+
+// Сегменты для управления появлением секций HTML
 const SEGMENTS = [
-  [2.5, 6.83], // Сегмент 1: 2.5 - 6.83 сек
-  [6.83, 11.17], // Сегмент 2: 6.83 - 11.17 сек
-  [11.17, 15.5], // Сегмент 3: 11.17 - 15.5 сек
-  [15.5, 19.83], // Сегмент 4: 15.5 - 19.83 сек
-  [19.83, 24.17], // Сегмент 5: 19.83 - 24.17 сек
-  [24.17, 28.5], // Сегмент 6: 24.17 - 28.5 сек
-  [28.5, 28.5], // Сегмент 6: 24.17 - 28.5 сек
+  [2.5, 2.5], // Секция 0 (data-seg="0")
+  [6.9, 6.9], // Секция 1 (data-seg="1")
+  [14.85, 14.85], // Секция 2 (data-seg="2")
+  [18.4, 18.4], // Секция 3 (data-seg="3")
+  [22.1, 22.1], // Секция 4 (data-seg="4")
+  [26.34, 26.34], // Секция 5 (data-seg="5")
+  [26.65, 26.65], // Секция 6 (data-seg="6")
+];
+
+// Сегменты для управления воспроизведением видео (с промежуточными сегментами между каждой секцией кроме 5→6)
+const VIDEO_SEGMENTS = [
+  [2.5, 2.5], // Видео сегмент 0: 2.5 - 2.5 сек (секция 0)
+  [2.5, 6.9], // Промежуточный сегмент: 2.5 - 6.9 сек (переход 0→1)
+  [6.9, 6.9], // Видео сегмент 1: 6.9 - 6.9 сек (секция 1)
+  [6.9, 14.85], // Промежуточный сегмент: 6.9 - 14.85 сек (переход 1→2)
+  [14.85, 14.85], // Видео сегмент 2: 14.85 - 14.85 сек (секция 2)
+  [14.85, 18.4], // Промежуточный сегмент: 14.85 - 18.4 сек (переход 2→3)
+  [18.4, 18.4], // Видео сегмент 3: 18.4 - 18.4 сек (секция 3)
+  [18.4, 22.1], // Промежуточный сегмент: 18.4 - 22.1 сек (переход 3→4)
+  [22.1, 22.1], // Видео сегмент 4: 22.1 - 22.1 сек (секция 4)
+  [22.1, 26.34], // Промежуточный сегмент: 22.1 - 26.34 сек (переход 4→5)
+  [26.34, 26.34], // Видео сегмент 5: 26.34 - 26.34 сек (секция 5)
+  [26.34, 26.65], // Промежуточный сегмент: 22.1 - 26.34 сек (переход 5→6)
+  [26.65, 26.65], // Видео сегмент 6: 26.34 - 26.34 сек (секция 6)
 ];
 
 const LERP_ALPHA = 0.1;
@@ -61,20 +83,119 @@ let scrollVel = 0;
 let smoothedTime = 0;
 let activeSeg = 0;
 let lastActiveSeg = -1;
+let activeVideoSeg = 0; // Активный видео сегмент
+let lastActiveVideoSeg = -1; // Предыдущий активный видео сегмент
 let isPageVisible = true;
 let animationId = null;
 let isInFooterMode = false; // Флаг для режима футера
 
+// Переменные для управления блокировкой скролла и последовательным появлением
+let isScrollLocked = false; // Флаг блокировки скролла
+let sectionAnimationTimeout = null; // Таймер для анимации секции
+let currentSectionBlocks = []; // Массив блоков текущей секции
+let currentBlockIndex = 0; // Индекс текущего блока
+
 // Настройки виртуального скролла
-const SCROLL_SENSITIVITY = 0.2; // Чувствительность скролла
+const SCROLL_SENSITIVITY = 0.1; // Чувствительность скролла
 const SCROLL_DAMPING = 0.2; // Затухание скорости
 const TOTAL_SEGMENTS = SEGMENTS.length;
 const MIN_SCROLL_THRESHOLD = 0.1; // Минимальный порог для начала скролла
-const FOOTER_TRANSITION_HEIGHT = 100; // Высота перехода к футеру
+const FOOTER_TRANSITION_HEIGHT = 10; // Высота перехода к футеру
+
+// Настройки анимации блоков в секциях
+const BLOCK_ANIMATION_DELAY = 10; // Задержка между появлением блоков (мс)
+const SECTION_LOCK_DURATION = 1500; // Время блокировки скролла для секции (мс)
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 const invlerp = (a, b, v) => (v - a) / (b - a);
+
+// Функция для блокировки скролла
+function lockScroll() {
+  isScrollLocked = true;
+}
+
+// Функция для разблокировки скролла
+function unlockScroll() {
+  isScrollLocked = false;
+}
+
+// Функция для последовательного появления блоков в секции
+function animateSectionBlocks(section) {
+  if (!section) return;
+
+  // Находим все блоки текста в секции
+  const textBlocks = section.querySelectorAll('p, .form_wrap');
+
+  if (textBlocks.length === 0) return;
+
+  // Скрываем все блоки изначально
+  textBlocks.forEach((block) => {
+    block.style.opacity = '0';
+    block.style.transform = 'translateY(20px)';
+    block.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+  });
+
+  // Блокируем скролл на время анимации
+  lockScroll();
+
+  // Показываем блоки последовательно
+  let blockIndex = 0;
+  const showNextBlock = () => {
+    if (blockIndex < textBlocks.length) {
+      const block = textBlocks[blockIndex];
+      block.style.opacity = '1';
+      block.style.transform = 'translateY(0)';
+      blockIndex++;
+
+      if (blockIndex < textBlocks.length) {
+        setTimeout(showNextBlock, BLOCK_ANIMATION_DELAY);
+      } else {
+        // После показа всех блоков запускаем анимацию печати для серого текста
+        setTimeout(() => {
+          startTypingAnimation(section);
+        }, 300); // Небольшая задержка после появления всех блоков
+        
+        // Разблокируем скролл через некоторое время
+        setTimeout(unlockScroll, SECTION_LOCK_DURATION);
+      }
+    }
+  };
+
+  // Запускаем анимацию с небольшой задержкой
+  setTimeout(showNextBlock, 200);
+}
+
+// Функция для запуска анимации печати после появления всех блоков
+function startTypingAnimation(section) {
+  const grayTexts = section.querySelectorAll('.gray_text');
+  grayTexts.forEach((grayText) => {
+    // Сбрасываем предыдущую анимацию если была
+    resetTypingAnimation(grayText);
+    // Запускаем новую анимацию
+    createTypingAnimation(grayText, 50);
+  });
+}
+
+// Функция для сброса анимации блоков секции
+function resetSectionBlocks(section) {
+  if (!section) return;
+
+  const textBlocks = section.querySelectorAll('p, .form_wrap');
+  textBlocks.forEach((block) => {
+    block.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    block.style.opacity = '0';
+    block.style.transform = 'translateY(20px)';
+  });
+}
+
+// Функция для определения, находимся ли мы в переходном сегменте
+function isInTransitionSegment(videoSegIndex) {
+  // Индексы переходных сегментов в массиве VIDEO_SEGMENTS
+  // Переходы: 0→1, 1→2, 2→3, 3→4, 4→5 (НЕТ перехода 5→6)
+  const transitionSegments = [1, 3, 5, 7, 9, 11]; // Индексы переходов между секциями
+  return transitionSegments.includes(videoSegIndex);
+}
 
 // Функция для создания анимации печати
 function createTypingAnimation(element, delay = 100) {
@@ -152,39 +273,84 @@ function detectActiveSection() {
   activeSeg = idx;
 }
 
+// Функция для определения активного видео сегмента
+function detectActiveVideoSegment() {
+  // Если мы в режиме футера, не обновляем видео сегмент
+  if (isInFooterMode) {
+    return;
+  }
+
+  // Определяем активный видео сегмент на основе виртуального скролла
+  const scrollProgress = Math.max(
+    0,
+    Math.min(1, virtualScrollY / maxVirtualScroll),
+  );
+
+  // Определяем активный видео сегмент на основе прогресса виртуального скролла
+  // Используем общее количество видео сегментов для плавного воспроизведения
+  let idx = Math.floor(scrollProgress * VIDEO_SEGMENTS.length);
+
+  // Ограничиваем индекс диапазоном видео сегментов
+  idx = Math.max(0, Math.min(idx, VIDEO_SEGMENTS.length - 1));
+
+  activeVideoSeg = idx;
+}
+
 function updateSectionVisibility() {
   // Проверяем режим футера перед обновлением видимости
   const wasInFooterMode = isInFooterMode;
-  
+
   // Сначала проверяем, нужно ли переключиться в режим футера
   detectActiveSection();
-  
-  // Обновляем видимость только если активный сегмент изменился или изменился режим футера
-  if (activeSeg !== lastActiveSeg || wasInFooterMode !== isInFooterMode) {
+  detectActiveVideoSegment();
+
+  // Проверяем, находимся ли мы в переходном сегменте
+  const inTransition = isInTransitionSegment(activeVideoSeg);
+
+  // Обновляем видимость если активный сегмент изменился, режим футера изменился, или изменился статус перехода
+  const wasInTransition = isInTransitionSegment(lastActiveVideoSeg || 0);
+  if (
+    activeSeg !== lastActiveSeg ||
+    wasInFooterMode !== isInFooterMode ||
+    inTransition !== wasInTransition
+  ) {
     $sections.forEach((section, index) => {
       const segValue = parseInt(section.getAttribute('data-seg'));
 
-      if (segValue === activeSeg) {
-        // Показываем активную секцию
+      // Скрываем секции если мы в переходе, независимо от того, какая секция должна быть активной
+      if (inTransition) {
+        // В переходе скрываем все секции
+        section.style.transition = 'opacity 0.5s ease, visibility 0.5s ease';
+        section.style.opacity = '0';
+        section.style.visibility = 'hidden';
+        section.classList.remove('active');
+
+        // Сбрасываем анимацию блоков для скрытых секций
+        resetSectionBlocks(section);
+
+        // Сбрасываем анимацию печати для неактивных секций
+        const grayTexts = section.querySelectorAll('.gray_text');
+        grayTexts.forEach((grayText) => {
+          resetTypingAnimation(grayText);
+        });
+      } else if (segValue === activeSeg) {
+        // Показываем активную секцию только если не в переходе
+        section.style.transition = 'opacity 0.5s ease, visibility 0.5s ease';
         section.style.opacity = '1';
         section.style.visibility = 'visible';
         section.classList.add('active');
 
-        // Запускаем анимацию печати для серого текста в активной секции
-        const grayTexts = section.querySelectorAll('.gray_text');
-        grayTexts.forEach((grayText) => {
-          // Сбрасываем предыдущую анимацию если была
-          resetTypingAnimation(grayText);
-          // Запускаем новую анимацию с небольшой задержкой
-          setTimeout(() => {
-            createTypingAnimation(grayText, 50); // 30ms задержка между буквами
-          }, 100);
-        });
+        // Запускаем анимацию блоков для новой секции (анимация печати запустится автоматически)
+        animateSectionBlocks(section);
       } else {
         // Скрываем неактивные секции
+        section.style.transition = 'opacity 0.5s ease, visibility 0.5s ease';
         section.style.opacity = '0';
         section.style.visibility = 'hidden';
         section.classList.remove('active');
+
+        // Сбрасываем анимацию блоков для скрытых секций
+        resetSectionBlocks(section);
 
         // Сбрасываем анимацию печати для неактивных секций
         const grayTexts = section.querySelectorAll('.gray_text');
@@ -198,32 +364,47 @@ function updateSectionVisibility() {
     const soundButtonWrap = document.querySelector('.sound_button_wrap');
     if (soundButtonWrap) {
       const soundButtonText = soundButtonWrap.querySelector('p');
-      
+
       // Приоритет: сначала проверяем режим футера
       if (isInFooterMode) {
         // В режиме футера скрываем весь элемент
+        soundButtonWrap.style.transition =
+          'opacity 0.5s ease, visibility 0.5s ease';
         soundButtonWrap.style.opacity = '0';
         soundButtonWrap.style.visibility = 'hidden';
       } else if (activeSeg === TOTAL_SEGMENTS - 1) {
         // В последнем сегменте (но не в футере) скрываем только текст
         if (soundButtonText) {
+          soundButtonText.style.transition =
+            'opacity 0.5s ease, visibility 0.5s ease';
           soundButtonText.style.opacity = '0';
           soundButtonText.style.visibility = 'hidden';
         }
+        soundButtonWrap.style.transition =
+          'opacity 0.5s ease, visibility 0.5s ease';
         soundButtonWrap.style.opacity = '1';
         soundButtonWrap.style.visibility = 'visible';
+      } 
+    }
+
+    // Управляем видимостью arrow_down_wrap
+    const arrowDownWrap = document.querySelector('.arrow_down_wrap');
+    if (arrowDownWrap) {
+      // В режиме футера или в последнем сегменте скрываем стрелку
+      if (isInFooterMode || activeSeg === TOTAL_SEGMENTS - 1) {
+        arrowDownWrap.style.transition = 'opacity 0.5s ease, visibility 0.5s ease';
+        arrowDownWrap.style.opacity = '0';
+        arrowDownWrap.style.visibility = 'hidden';
       } else {
-        // В обычных секциях показываем всё
-        if (soundButtonText) {
-          soundButtonText.style.opacity = '1';
-          soundButtonText.style.visibility = 'visible';
-        }
-        soundButtonWrap.style.opacity = '1';
-        soundButtonWrap.style.visibility = 'visible';
+        // В обычных секциях показываем стрелку
+        arrowDownWrap.style.transition = 'opacity 0.5s ease, visibility 0.5s ease';
+        arrowDownWrap.style.opacity = '1';
+        arrowDownWrap.style.visibility = 'visible';
       }
     }
 
     lastActiveSeg = activeSeg;
+    lastActiveVideoSeg = activeVideoSeg;
   }
 }
 
@@ -251,6 +432,7 @@ function tick() {
     }
 
     detectActiveSection();
+    detectActiveVideoSegment();
     updateSectionVisibility();
 
     // В режиме футера не управляем скроллом программно
@@ -265,11 +447,11 @@ function tick() {
         Math.min(1, virtualScrollY / maxVirtualScroll),
       );
 
-      // Определяем локальный прогресс внутри текущего сегмента
-      const segmentProgress = (scrollProgress * TOTAL_SEGMENTS) % 1;
+      // Определяем локальный прогресс внутри текущего видео сегмента
+      const videoSegmentProgress = (scrollProgress * VIDEO_SEGMENTS.length) % 1;
 
-      const [t0, t1] = SEGMENTS[activeSeg];
-      let targetTime = lerp(t0, t1, segmentProgress);
+      const [t0, t1] = VIDEO_SEGMENTS[activeVideoSeg];
+      let targetTime = lerp(t0, t1, videoSegmentProgress);
 
       if (VELOCITY_BOOST !== 0) {
         const segLen = Math.abs(t1 - t0) || 0.001;
@@ -296,7 +478,7 @@ function tick() {
       }
 
       if (hud.seg) hud.seg.textContent = String(activeSeg);
-      if (hud.prog) hud.prog.textContent = segmentProgress.toFixed(2);
+      if (hud.prog) hud.prog.textContent = videoSegmentProgress.toFixed(2);
       if (hud.time) hud.time.textContent = smoothedTime.toFixed(2);
     }
   } catch (error) {
@@ -316,6 +498,12 @@ function loadVideo() {
 function handleWheel(event) {
   // Если мы в режиме футера, разрешаем стандартный скролл
   if (isInFooterMode) {
+    return;
+  }
+
+  // Если скролл заблокирован, предотвращаем событие
+  if (isScrollLocked) {
+    event.preventDefault();
     return;
   }
 
@@ -349,6 +537,12 @@ function handleTouchStart(event) {
 function handleTouchMove(event) {
   // Если мы в режиме футера, разрешаем стандартный скролл
   if (isInFooterMode) {
+    return;
+  }
+
+  // Если скролл заблокирован, предотвращаем событие
+  if (isScrollLocked) {
+    event.preventDefault();
     return;
   }
 
@@ -386,11 +580,20 @@ function handleTouchEnd(event) {
 
 $video.addEventListener('loadedmetadata', () => {
   const dur = $video.duration || 0;
+
+  // Ограничиваем сегменты для секций
   for (let i = 0; i < SEGMENTS.length; i++) {
     SEGMENTS[i][0] = clamp(SEGMENTS[i][0], 0, dur);
     SEGMENTS[i][1] = clamp(SEGMENTS[i][1], 0, dur);
   }
-  smoothedTime = SEGMENTS[0][0] || 0;
+
+  // Ограничиваем видео сегменты
+  for (let i = 0; i < VIDEO_SEGMENTS.length; i++) {
+    VIDEO_SEGMENTS[i][0] = clamp(VIDEO_SEGMENTS[i][0], 0, dur);
+    VIDEO_SEGMENTS[i][1] = clamp(VIDEO_SEGMENTS[i][1], 0, dur);
+  }
+
+  smoothedTime = VIDEO_SEGMENTS[0][0] || 0;
 
   // Устанавливаем максимальный виртуальный скролл
   maxVirtualScroll = window.innerHeight * TOTAL_SEGMENTS;
@@ -411,7 +614,7 @@ document.addEventListener(
       virtualScrollY = maxVirtualScroll - 1;
       document.body.style.overflow = 'hidden';
       window.scrollTo(0, 0);
-      
+
       // Обновляем видимость элементов интерфейса
       updateSectionVisibility();
     }
@@ -527,6 +730,9 @@ window.addEventListener('load', () => {
     maxVirtualScroll = window.innerHeight * TOTAL_SEGMENTS;
     virtualScrollY = 0;
     activeSeg = 0;
+    activeVideoSeg = 0;
+    isScrollLocked = false; // Инициализируем состояние блокировки скролла
+
     updateSectionVisibility();
 
     animationId = requestAnimationFrame(tick);

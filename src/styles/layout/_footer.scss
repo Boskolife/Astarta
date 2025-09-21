@@ -1,19 +1,19 @@
 .footer {
     position: relative;
-    z-index: 20;
+    z-index: 30;
     background-color: $black;
     padding: 52px 0;
 
-    &::after {
-        content: '';
-        position: absolute;
-        z-index: 5;
-        top: -100%;
-        left: 0;
-        height: 100%;
-        width: 100%;
-        background: linear-gradient(to top, #000 0%, #0000 100%);
-    }
+    // &::after {
+    //     content: '';
+    //     position: absolute;
+    //     z-index: 5;
+    //     top: -100%;
+    //     left: 0;
+    //     height: 100%;
+    //     width: 100%;
+    //     background: linear-gradient(to top, #000 0%, #0000 100%);
+    // }
 
     .container {
         position: static;
