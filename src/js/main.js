@@ -82,6 +82,8 @@ let animationId = null;
 let isPageVisible = true;
 let smoothedTime = 0;
 let targetTime = 0;
+let returningFromFooter = false;
+let isScrollLocked = false;
 
 // Переменные для синхронизации видео с скроллом
 let scrollingSpeed = 2500; // Скорость скролла (будет синхронизирована с FullPage.js)
@@ -103,6 +105,12 @@ const lerp = (a, b, t) => a + (b - a) * t;
 function animateSectionBlocks(section) {
   if (!section) return;
 
+  // Полностью пропускаем анимацию для секции с формой
+  if (section.classList.contains('seventh-section')) {
+    console.log('Skipping animation for form section');
+    return;
+  }
+
   // Находим блоки контента в правильном порядке:
   // 1. Сначала number_wrap (если есть)
   // 2. Затем все параграфы по порядку
@@ -120,6 +128,10 @@ function animateSectionBlocks(section) {
   if (contentBlocks.length === 0) return;
 
   console.log(`Animating ${contentBlocks.length} blocks in section ${section.getAttribute('data-seg')}`);
+
+  // Блокируем скролл во время анимаций
+  isScrollLocked = true;
+  console.log('Scroll locked for animations');
 
   // Добавляем базовый класс и сбрасываем состояние
   contentBlocks.forEach((block, index) => {
@@ -150,6 +162,12 @@ function animateSectionBlocks(section) {
         // После показа всех блоков запускаем анимацию печати для серого текста
         setTimeout(() => {
           startTypingAnimation(section);
+          
+          // Разблокируем скролл после завершения всех анимаций
+          setTimeout(() => {
+            isScrollLocked = false;
+            console.log('Scroll unlocked after all animations');
+          }, 1000); // Дополнительная задержка после анимации печати
         }, 500); // Увеличенная задержка для лучшего эффекта
       }
     }
@@ -339,41 +357,94 @@ function setScrollSpeed(newSpeed) {
   }
 }
 
+// Функция для принудительного показа элементов формы без анимации
+function showFormElementsWithoutAnimation(section) {
+  if (!section) return;
+  
+  const formWrap = section.querySelector('.form_wrap');
+  const paragraphs = section.querySelectorAll('p');
+  
+  // Принудительно показываем все элементы формы
+  if (formWrap) {
+    formWrap.classList.add('animate-in');
+    formWrap.classList.remove('animate-out', 'content-block');
+    formWrap.style.opacity = '1';
+    formWrap.style.visibility = 'visible';
+  }
+  
+  // Показываем все параграфы
+  paragraphs.forEach(p => {
+    p.classList.add('animate-in');
+    p.classList.remove('animate-out', 'content-block');
+    p.style.opacity = '1';
+    p.style.visibility = 'visible';
+  });
+  
+  // Для секции с формой не блокируем скролл
+  console.log('Form section elements shown without animation - scroll not locked');
+}
+
 // Функция для управления видимостью UI элементов
 function updateUIVisibility(sectionIndex, isInTransition = false) {
-  // Управляем видимостью sound_button_wrap
-  const soundButtonWrap = document.querySelector('.sound_button_wrap');
-  if (soundButtonWrap) {
-    const soundButtonText = soundButtonWrap.querySelector('p');
+    // Управляем видимостью sound_button_wrap
+    const soundButtonWrap = document.querySelector('.sound_button_wrap');
+    if (soundButtonWrap) {
+      const soundButtonText = soundButtonWrap.querySelector('p');
 
     if (sectionIndex === SEGMENTS.length - 1) {
-      // В последнем сегменте скрываем только текст
+      // В последнем сегменте (форма) скрываем только текст
       if (soundButtonText) {
         soundButtonText.classList.remove('visible');
         soundButtonText.classList.add('hidden');
       }
       soundButtonWrap.classList.remove('hidden');
       soundButtonWrap.classList.add('visible');
+    } else if (sectionIndex === SEGMENTS.length) {
+      // В футере (8-я секция) скрываем всю кнопку звука
+      if (soundButtonText) {
+        soundButtonText.classList.remove('visible');
+        soundButtonText.classList.add('hidden');
+      }
+      soundButtonWrap.classList.remove('visible');
+      soundButtonWrap.classList.add('hidden');
     } else {
       // В других секциях показываем всё
-      if (soundButtonText) {
+        if (soundButtonText) {
         soundButtonText.classList.remove('hidden');
         soundButtonText.classList.add('visible');
       }
       soundButtonWrap.classList.remove('hidden');
       soundButtonWrap.classList.add('visible');
+      } 
+    }
+
+    // Управляем видимостью arrow_down_wrap
+    const arrowDownWrap = document.querySelector('.arrow_down_wrap');
+    if (arrowDownWrap) {
+    if (sectionIndex === SEGMENTS.length - 1 || sectionIndex === SEGMENTS.length) {
+      // Скрываем стрелку в последней секции (форма) и в футере
+      arrowDownWrap.classList.remove('visible');
+      arrowDownWrap.classList.add('hidden');
+      } else {
+      arrowDownWrap.classList.remove('hidden');
+      arrowDownWrap.classList.add('visible');
     }
   }
 
-  // Управляем видимостью arrow_down_wrap
-  const arrowDownWrap = document.querySelector('.arrow_down_wrap');
-  if (arrowDownWrap) {
-    if (sectionIndex === SEGMENTS.length - 1) {
-      arrowDownWrap.classList.remove('visible');
-      arrowDownWrap.classList.add('hidden');
+  // Управляем видимостью секции с формой когда мы в футере
+  const formSection = document.querySelector('.seventh-section');
+  if (formSection) {
+    if (sectionIndex === SEGMENTS.length) {
+      // В футере - показываем секцию с формой поверх футера
+      formSection.classList.add('keep-visible');
     } else {
-      arrowDownWrap.classList.remove('hidden');
-      arrowDownWrap.classList.add('visible');
+      // Не в футере - убираем класс keep-visible
+      formSection.classList.remove('keep-visible');
+      
+      // Если мы переходим из футера в секцию с формой, устанавливаем флаг
+      if (sectionIndex === SEGMENTS.length - 1 && currentSectionIndex === SEGMENTS.length) {
+        returningFromFooter = true;
+      }
     }
   }
 }
@@ -386,7 +457,7 @@ function initFullPage() {
   fullPageInstance = new fullpage('#fullpage', {
     // Основные настройки
     licenseKey: 'gplv3-license', // Используем GPL лицензию
-    sectionsColor: ['transparent', 'transparent', 'transparent', 'transparent', 'transparent', 'transparent', 'transparent'],
+    sectionsColor: ['transparent', 'transparent', 'transparent', 'transparent', 'transparent', 'transparent', 'transparent', 'transparent'],
     navigation: false,
     navigationPosition: 'right',
     showActiveTooltip: false,
@@ -432,6 +503,12 @@ function initFullPage() {
     onLeave: function(origin, destination, direction, trigger) {
       console.log('Leaving section', origin.index, 'to', destination.index);
       
+      // Блокируем переход если скролл заблокирован
+      if (isScrollLocked) {
+        console.log('Scroll is locked, preventing transition');
+        return false;
+      }
+      
       isTransitioning = true;
       const oldSectionIndex = origin.index;
       const newSectionIndex = destination.index;
@@ -458,16 +535,28 @@ function initFullPage() {
       isTransitioning = false;
       currentSectionIndex = destination.index;
       
+      // Проверяем, возвращаемся ли мы из футера в секцию с формой
+      const isReturningFromFooter = returningFromFooter && destination.index === SEGMENTS.length - 1;
+      
+      // Сбрасываем флаг возврата из футера
+      returningFromFooter = false;
+      
       // Обновляем время видео для новой секции
       updateVideoTime(currentSectionIndex, 0);
       
       // Обновляем видимость UI элементов
       updateUIVisibility(currentSectionIndex, false);
       
+      // Для секции с формой принудительно показываем все элементы без анимации
+      const newSection = $sections[currentSectionIndex];
+      if (newSection && newSection.classList.contains('seventh-section')) {
+        showFormElementsWithoutAnimation(newSection);
+      }
+      
       // Запускаем анимацию для новой секции
       // Избегаем двойного запуска для первой секции при инициализации
-      const newSection = $sections[currentSectionIndex];
-      if (newSection && !(currentSectionIndex === 0 && !isInitialAnimationStarted)) {
+      // И пропускаем анимацию при возврате из футера в секцию с формой
+      if (newSection && !(currentSectionIndex === 0 && !isInitialAnimationStarted) && !isReturningFromFooter) {
         animateSectionBlocks(newSection);
       }
     },

@@ -23,8 +23,8 @@ body {
     height: var(--stage-h);
 }
 
-main {
-    height: var(--vh);
+.fp-overflow {
+    height: 100%;
 }
 
 .video {
@@ -155,13 +155,17 @@ main {
 }
 
 .section {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
+    position: relative;
+    height: 100%;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
     padding: 15vh 0;
+
+    &.footer-section {
+        padding: 0;
+        height: auto;
+    }
 
     &.active {
         z-index: 10;
@@ -169,6 +173,62 @@ main {
         visibility: visible;
         transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
     }
+
+    // Когда футер активен, секция с формой остается видимой
+    &.seventh-section {
+        opacity: 1 !important;
+        visibility: visible !important;
+        // Полностью отключаем переходы для секции с формой
+        transition: none !important;
+        
+        .form_wrap {
+            transition: none !important;
+            
+            &.content-block {
+                opacity: 1 !important;
+                visibility: visible !important;
+                transition: none !important;
+            }
+        }
+
+        p {
+            transition: none !important;
+            
+            &.content-block {
+                opacity: 1 !important;
+                visibility: visible !important;
+                transition: none !important;
+            }
+        }
+        
+        &.keep-visible {
+            z-index: 9;
+            opacity: 1;
+            visibility: visible;
+             
+            .form_wrap {
+                opacity: 1 !important;
+                visibility: visible !important;
+                pointer-events: auto;
+                
+                &.content-block {
+                    opacity: 1 !important;
+                    visibility: visible !important;
+                }
+            }
+
+            p {
+                opacity: 1 !important;
+                visibility: visible !important;
+                
+                &.content-block {
+                    opacity: 1 !important;
+                    visibility: visible !important;
+                }
+            }
+        }
+    }
+
 
     &.first-section {
 
