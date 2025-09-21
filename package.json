@@ -22,6 +22,7 @@
     "vite-plugin-handlebars": "^1.6.0"
   },
   "dependencies": {
+    "fullpage.js": "^4.0.37",
     "gsap": "^3.13.0",
     "swiper": "^11.0.3"
   }

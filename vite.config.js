@@ -16,6 +16,10 @@ export default defineConfig({
   plugins: [
     handlebars({ partialDirectory: resolve(__dirname, 'src/templates') }),
   ],
+  server: {
+    host: true,
+    port: 3000,
+  },
   build: {
     rollupOptions: {
       input,
