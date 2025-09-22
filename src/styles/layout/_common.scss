@@ -23,19 +23,35 @@ body {
     height: var(--stage-h);
 }
 
+// Стек для двух видеослоев без миганий
+.video-stack {
+    position: fixed;
+    inset: 0;
+    z-index: -1; // под интерфейсом
+}
+
+.video-stack .video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 49%;
+    pointer-events: none;
+    opacity: 0;
+    will-change: opacity;
+    background: transparent;
+}
+
+.video-stack .video.is-visible {
+    opacity: 1;
+}
+
 .fp-overflow {
     height: 100%;
 }
 
-.video {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    pointer-events: none;
-    object-position: 49%;
-}
 
 .container {
     max-width: 1440px;
@@ -54,7 +70,8 @@ body {
     display: block;
     color: $gray;
 
-    .char, .word{
+    .char,
+    .word {
         display: inline-block;
     }
 
@@ -62,7 +79,7 @@ body {
         .char {
             color: $gray;
             transition: color 0.1s ease-in-out;
-            white-space: pre-wrap; 
+            white-space: pre-wrap;
 
             &.active {
                 color: $white;
@@ -179,62 +196,6 @@ body {
         transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
     }
 
-    // Когда футер активен, секция с формой остается видимой
-    &.seventh-section {
-        opacity: 1 !important;
-        visibility: visible !important;
-        // Полностью отключаем переходы для секции с формой
-        transition: none !important;
-
-        .form_wrap {
-            transition: none !important;
-
-            &.content-block {
-                opacity: 1 !important;
-                visibility: visible !important;
-                transition: none !important;
-            }
-        }
-
-        p {
-            transition: none !important;
-
-            &.content-block {
-                opacity: 1 !important;
-                visibility: visible !important;
-                transition: none !important;
-            }
-        }
-
-        &.keep-visible {
-            z-index: 9;
-            opacity: 1;
-            visibility: visible;
-
-            .form_wrap {
-                opacity: 1 !important;
-                visibility: visible !important;
-                pointer-events: auto;
-
-                &.content-block {
-                    opacity: 1 !important;
-                    visibility: visible !important;
-                }
-            }
-
-            p {
-                opacity: 1 !important;
-                visibility: visible !important;
-
-                &.content-block {
-                    opacity: 1 !important;
-                    visibility: visible !important;
-                }
-            }
-        }
-    }
-
-
     &.first-section {
 
         .content {
@@ -263,7 +224,7 @@ body {
         }
 
         .right_col {
-            max-width: 370px;
+            max-width: 320px;
 
             @include media ("<tablet") {
                 order: 1;
@@ -297,7 +258,7 @@ body {
 
         .right_col {
             margin-top: auto;
-            max-width: 425px;
+            max-width: 460px;
             overflow: hidden;
 
             p {
@@ -451,6 +412,10 @@ body {
     }
 
     &.seventh-section {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transition: none !important;
+
         .content {
             display: flex;
             position: relative;
@@ -466,6 +431,50 @@ body {
             max-width: 425px;
             width: 100%;
             margin: 0 auto;
+            transition: none !important;
+
+            &.content-block {
+                opacity: 1 !important;
+                visibility: visible !important;
+                transition: none !important;
+            }
+        }
+
+        p {
+            transition: none !important;
+
+            &.content-block {
+                opacity: 1 !important;
+                visibility: visible !important;
+                transition: none !important;
+            }
+        }
+
+        &.keep-visible {
+            z-index: 9;
+            opacity: 1;
+            visibility: visible;
+
+            .form_wrap {
+                opacity: 1 !important;
+                visibility: visible !important;
+                pointer-events: auto;
+
+                &.content-block {
+                    opacity: 1 !important;
+                    visibility: visible !important;
+                }
+            }
+
+            p {
+                opacity: 1 !important;
+                visibility: visible !important;
+
+                &.content-block {
+                    opacity: 1 !important;
+                    visibility: visible !important;
+                }
+            }
         }
 
         h2 {
@@ -519,7 +528,6 @@ body {
         grid-template-columns: 1fr;
         height: 100%;
     }
-
 
     .right_col {
         width: 100%;
