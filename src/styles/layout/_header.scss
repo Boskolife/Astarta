@@ -5,6 +5,15 @@
     width: 100%;
     z-index: 20;
     padding-top: 44px;
+    opacity: 0;
+    visibility: hidden;
+
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+
+    &.visible {
+        opacity: 1;
+        visibility: visible;
+    }
 
     @include media ("<tablet") {
         padding-top: 25px;

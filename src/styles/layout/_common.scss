@@ -51,13 +51,18 @@ body {
 }
 
 .gray_text {
+    display: block;
     color: $gray;
+
+    .char, .word{
+        display: inline-block;
+    }
 
     &.typing-animation {
         .char {
             color: $gray;
             transition: color 0.1s ease-in-out;
-            white-space: pre-wrap; // Сохраняем пробелы и переносы
+            white-space: pre-wrap; 
 
             &.active {
                 color: $white;
@@ -180,10 +185,10 @@ body {
         visibility: visible !important;
         // Полностью отключаем переходы для секции с формой
         transition: none !important;
-        
+
         .form_wrap {
             transition: none !important;
-            
+
             &.content-block {
                 opacity: 1 !important;
                 visibility: visible !important;
@@ -193,24 +198,24 @@ body {
 
         p {
             transition: none !important;
-            
+
             &.content-block {
                 opacity: 1 !important;
                 visibility: visible !important;
                 transition: none !important;
             }
         }
-        
+
         &.keep-visible {
             z-index: 9;
             opacity: 1;
             visibility: visible;
-             
+
             .form_wrap {
                 opacity: 1 !important;
                 visibility: visible !important;
                 pointer-events: auto;
-                
+
                 &.content-block {
                     opacity: 1 !important;
                     visibility: visible !important;
@@ -220,7 +225,7 @@ body {
             p {
                 opacity: 1 !important;
                 visibility: visible !important;
-                
+
                 &.content-block {
                     opacity: 1 !important;
                     visibility: visible !important;
@@ -530,7 +535,6 @@ body {
     }
 }
 
-// Классы для анимации контента
 .content-block {
     opacity: 0;
     transition: opacity 0.8s ease, transform 0.8s ease;
@@ -547,7 +551,6 @@ body {
     }
 }
 
-// Классы для UI элементов
 .ui-element {
     transition: opacity 0.5s ease, visibility 0.5s ease;
 
@@ -562,7 +565,6 @@ body {
     }
 }
 
-// Классы для анимации печати
 .typing-animation {
     .char {
         color: $white;

@@ -12,22 +12,26 @@
 </head>
 
 <body>
-  <video id="video" class="video" playsinline muted preload="metadata" poster=""
+  <video id="video" class="video" playsinline muted preload="auto" poster=""
     disablePictureInPicture disableRemotePlayback aria-label="Astarta Capital presentation video">
-    <source src="./video/output.mp4" media="(min-width: 479px)" type="video/mp4">
+    <source src="./video/output-zipped.mp4" media="(min-width: 479px)" type="video/mp4">
     <source src="./video/output_mob.mp4" media="(max-width: 480px)" type="video/mp4">
   </video>
-  <div class="sound_button_wrap ui-element visible">
-    <p class="ui-element visible">
+  <video id="video-backward" class="video video-backward" playsinline muted preload="auto" poster=""
+    disablePictureInPicture disableRemotePlayback aria-label="Astarta Capital presentation video (reverse)" style="display: none;">
+    <source src="./video/backward.mp4" type="video/mp4">
+  </video>
+  <div class="sound_button_wrap ui-element hidden">
+    <p class="ui-element hidden">
       Scroll down to discover
     </p>
     {{> sound-button }}
   </div>
-  <div class="arrow_down_wrap ui-element visible">
+  <div class="arrow_down_wrap ui-element hidden">
     <img src="./images/arrow.svg" alt="arrow down">
   </div>
   {{> header }}
-  <main id="fullpage">
+  <main id="fullpage" class="hidden">
     <div class="section fp-section first-section" data-seg="0">
       <div class="container">
         <div class="content">
@@ -38,8 +42,7 @@
           </div>
           <div class="right_col">
             <p>The future doesn't <br> arrive by chance. <br>
-              <span class="gray_text">It's built, layer by layer, by those who see beyond the
-                obvious.</span>
+              <span class="gray_text">It's built, layer by layer, by those who see beyond the obvious.</span>
             </p>
           </div>
         </div>
@@ -57,8 +60,7 @@
             </p>
             <br>
             <br>
-            <p>We cut through the chaos — identifying what endures,<span class="gray_text"> what
-                scales, and what defines the next era of wealth.</span>
+            <p>We cut through the chaos — identifying what endures,<span class="gray_text"> what scales, and what defines the next era of wealth.</span>
             </p>
           </div>
         </div>
@@ -171,7 +173,7 @@
         </div>
       </div>
     </div>
-    <div class="section fp-section footer-section">
+    <div class="section fp-section footer-section" data-seg="7">
       {{>footer}}
     </div>
   </main>
