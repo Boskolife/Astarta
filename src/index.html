@@ -5,14 +5,33 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex,nofollow">
+  <meta name="description" content="Astarta Capital - The future doesn't arrive by chance. We invest in the ecosystems where play becomes economy, and communities become nations.">
+  <meta name="theme-color" content="#010101">
+  
+  <!-- Preload critical resources -->
+  <link rel="preload" href="./video/output-zipped.mp4" as="video" type="video/mp4">
+  <link rel="preload" href="./fonts/SpaceMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./fonts/SpaceMono-Regular.woff" as="font" type="font/woff" crossorigin>
 
-  <title>Astarta Capital</title>
+  <title>Astarta Capital - Investment in the Future</title>
+  
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Astarta Capital",
+    "description": "Investment firm focused on the convergence of culture, entertainment, and blockchain technology",
+    "url": "https://astartacapital.com"
+  }
+  </script>
+  
   <link rel="stylesheet" href="/styles/main.scss">
   <script type="module" src="/js/main.js" defer></script>
 </head>
 
 <body>
-  <div class="video-stack">
+  <div class="video-stack" role="presentation" aria-hidden="true">
     <video id="video" class="video is-visible" playsinline muted preload="auto" poster=""
       disablePictureInPicture disableRemotePlayback aria-label="Astarta Capital presentation video">
       <source src="./video/output-zipped.mp4" media="(min-width: 479px)" type="video/mp4">
@@ -162,18 +181,18 @@
         <div class="content">
           <div class="form_wrap">
             <h2>Contact us to explore partnership opportunities.</h2>
-            <form action="#" id="contact-form">
+            <form action="#" id="contact-form" novalidate>
               <div class="input_wrap">
-                <input type="text" name="firstName" placeholder="First Name">
+                <input type="text" name="firstName" placeholder="First Name" autocomplete="given-name">
               </div>
               <div class="input_wrap">
-                <input type="text" name="lastName" placeholder="Last Name">
+                <input type="text" name="lastName" placeholder="Last Name" autocomplete="family-name">
               </div>
               <div class="input_wrap">
-                <input type="tel" name="phone" placeholder="Phone Number">
+                <input type="tel" name="phone" placeholder="Phone Number" autocomplete="tel">
               </div>
               <div class="input_wrap">
-                <input type="email" name="email" placeholder="Email Address">
+                <input type="email" name="email" placeholder="Email Address" autocomplete="email">
               </div>
               <button type="submit" class="btn btn_secondary">Send</button>
             </form>

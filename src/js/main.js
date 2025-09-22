@@ -40,7 +40,8 @@ const VIDEO_SEGMENTS = [
 const TIME_WRITE_EPSILON = 1 / 120; // минимальный порог обновления currentTime
 
 // Настройки анимации блоков в секциях
-const BLOCK_ANIMATION_DELAY = 300; // Задержка между появлением блоков (мс) - увеличено для более заметного эффекта
+const BLOCK_ANIMATION_DELAY = 300; // Задержка между появлением блоков (мс)
+const TYPING_ANIMATION_DELAY = 50; // Задержка между символами в анимации печати
 
 function primeVideoPlayback(video) {
   if (!video) {
@@ -189,12 +190,12 @@ function startTypingAnimation(section) {
       const grayText = grayTexts[currentIndex];
       
       // Запускаем анимацию для текущего элемента
-      createTypingAnimation(grayText, 50);
+      createTypingAnimation(grayText, TYPING_ANIMATION_DELAY);
       
       // Вычисляем задержку до следующего элемента
       // Берем количество символов в текущем элементе и умножаем на задержку
       const textLength = grayText.textContent?.length || 0;
-      const delayToNext = textLength * 50 + 1; // 200ms дополнительной паузы между элементами
+      const delayToNext = textLength * TYPING_ANIMATION_DELAY + 200;
       
       currentIndex++;
       
@@ -1110,9 +1111,32 @@ function initializeContentClasses() {
   if (arrowDownWrap) arrowDownWrap.classList.add('ui-element');
 }
 
+// Инициализация шрифтов
+function initFonts() {
+  // Добавляем класс загрузки шрифтов
+  document.documentElement.classList.add('fonts-loading');
+  
+  // Проверяем загрузку шрифтов
+  if ('fonts' in document) {
+    document.fonts.ready.then(() => {
+      document.documentElement.classList.remove('fonts-loading');
+      document.documentElement.classList.add('fonts-loaded');
+    });
+  } else {
+    // Fallback для старых браузеров
+    setTimeout(() => {
+      document.documentElement.classList.remove('fonts-loading');
+      document.documentElement.classList.add('fonts-loaded');
+    }, 100);
+  }
+}
+
 // Инициализация при загрузке страницы
 window.addEventListener('load', () => {
   try {
+    // Инициализируем шрифты
+    initFonts();
+    
     // Инициализируем CSS классы до запуска FullPage
     initializeContentClasses();
     
