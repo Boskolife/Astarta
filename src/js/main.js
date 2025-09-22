@@ -194,7 +194,7 @@ function startTypingAnimation(section) {
       // Вычисляем задержку до следующего элемента
       // Берем количество символов в текущем элементе и умножаем на задержку
       const textLength = grayText.textContent?.length || 0;
-      const delayToNext = textLength * 50 + 200; // 200ms дополнительной паузы между элементами
+      const delayToNext = textLength * 50 + 1; // 200ms дополнительной паузы между элементами
       
       currentIndex++;
       
