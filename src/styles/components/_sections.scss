@@ -1,0 +1,407 @@
+.section {
+  position: relative;
+  height: 100%;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
+  padding: max(15vh, 120px) 0;
+
+  &.footer-section {
+    padding: 0;
+    height: auto;
+  }
+
+  &.active {
+    z-index: 10;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
+  }
+
+  &.first-section {
+
+    .content {
+      grid-template-columns: repeat(3, 1fr);
+
+      @include media ("<tablet") {
+        grid-template-columns: repeat(1, 1fr);
+        justify-items: center;
+      }
+    }
+
+    .col {
+      @include media ("<tablet") {
+        display: none;
+      }
+    }
+
+    .middle_col {
+      max-width: 547px;
+      width: 100%;
+      margin-top: auto;
+
+      @include media ("<tablet") {
+        order: 2;
+      }
+    }
+
+    .right_col {
+      max-width: 370px;
+      margin-left: auto;
+      text-align: end;
+
+      @include media ("<tablet") {
+        order: 1;
+        max-width: 220px;
+      }
+    }
+  }
+
+  &.second-section {
+    .right_col {
+      max-width: 425px;
+      margin-left: auto;
+      text-align: end;
+      display: flex;
+      flex-direction: column;
+      row-gap: 44px;
+
+      @include media ("<tablet") {
+        justify-content: space-between;
+      }
+
+      .gray_text {
+        &:nth-child(1) {
+          @include media ("<tablet") {
+            max-width: 220px;
+            margin-right: auto;
+            text-align: start;
+          }
+        }
+      }
+    }
+  }
+
+  &.third-section {
+
+    .number_wrap {
+      max-width: 262px;
+      position: absolute;
+      top: 35%;
+      left: 55%;
+      transform: translate(-50%, -50%);
+
+      @include media ("<tablet") {
+        right: auto;
+        left: 50%;
+        transform: translateX(-75%);
+      }
+    }
+
+
+    .right_col {
+      margin-top: auto;
+      margin-left: auto;
+      text-align: end;
+      max-width: 460px;
+      overflow: hidden;
+
+      @include media ("<tablet") {
+        max-width: 280px;
+      }
+
+      p {
+        &::after {
+          content: url(../images/line.svg);
+          display: inline-block;
+          height: 1px;
+          margin-top: 12px;
+        }
+      }
+
+    }
+  }
+
+  &.fourth-section {
+
+    .number_wrap {
+      width: 242px;
+      position: absolute;
+      top: 55%;
+      left: 55%;
+      transform: translate(-50%, -50%);
+
+      @include media ("<tablet") {
+        top: 45%;
+        left: 50%;
+        transform: translate(-20%, -50%);
+      }
+    }
+
+    .right_col {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      max-width: 530px;
+      width: 100%;
+      margin-left: auto;
+      text-align: end;
+
+      @include media ("<tablet") {
+        max-width: 100%
+      }
+
+      p {
+        width: 100%;
+
+        &:first-child {
+          max-width: 270px;
+          margin-left: auto;
+
+          @include media ("<tablet") {
+            margin-right: auto;
+            margin-left: 0;
+            text-align: start;
+          }
+        }
+
+        &:last-child {
+          max-width: 430px;
+          overflow: hidden;
+          margin-left: auto;
+
+          @include media ("<tablet") {
+            margin-left: auto;
+            max-width: 280px;
+          }
+
+          &::after {
+            content: url(../images/line.svg);
+            display: inline-block;
+            height: 1px;
+            margin-top: 12px;
+          }
+        }
+      }
+    }
+  }
+
+  &.fifth-section {
+
+    .number_wrap {
+      width: 325px;
+      height: 108px;
+      position: absolute;
+      top: 40%;
+      left: 40%;
+      transform: translate(-50%, -50%);
+
+      @include media ("<phone") {
+        left: 50%;
+      }
+    }
+
+    .right_col {
+      margin-top: auto;
+      margin-left: auto;
+      text-align: end;
+      max-width: 366px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      row-gap: 44px;
+
+      @include media ("<tablet") {
+        justify-content: space-between;
+        height: 100%;
+        max-width: 225px;
+      }
+
+      p {
+        &:first-child {
+          max-width: 140px;
+          width: 100%;
+          margin-left: auto;
+        }
+
+        &:last-child {
+          overflow: hidden;
+
+          &::after {
+            content: url(../images/line.svg);
+            display: inline-block;
+            height: 1px;
+            margin-top: 12px;
+          }
+        }
+      }
+    }
+  }
+
+  &.sixth-section {
+    .right_col {
+      margin-left: auto;
+      text-align: end;
+      @include adaptive-value("margin-bottom", 125, 25, 1);
+      max-width: 340px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      row-gap: 44px;
+
+      @include media ("<tablet") {
+        justify-content: space-between;
+        max-width: 100%;
+      }
+    }
+
+    p {
+      &:first-child {
+        @include media ("<tablet") {
+          margin-right: auto;
+          text-align: start;
+          max-width: 220px;
+          width: 100%;
+        }
+      }
+
+      &:last-child {
+        max-width: 280px;
+        margin-left: auto;
+        display: flex;
+        flex-direction: column;
+      }
+    }
+  }
+
+  &.seventh-section {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transition: none !important;
+
+    .content {
+      display: flex;
+      position: relative;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .form_wrap {
+      display: flex;
+      flex-direction: column;
+
+      row-gap: 36px;
+      max-width: 425px;
+      width: 100%;
+      margin: 0 auto;
+      transition: none !important;
+
+      &.content-block {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transition: none !important;
+      }
+    }
+
+    p {
+      transition: none !important;
+
+      &.content-block {
+        opacity: 1 !important;
+        visibility: visible !important;
+        transition: none !important;
+      }
+    }
+
+    &.keep-visible {
+      z-index: 9;
+      opacity: 1;
+      visibility: visible;
+
+      .form_wrap {
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto;
+
+        &.content-block {
+          opacity: 1 !important;
+          visibility: visible !important;
+        }
+      }
+
+      p {
+        opacity: 1 !important;
+        visibility: visible !important;
+
+        &.content-block {
+          opacity: 1 !important;
+          visibility: visible !important;
+        }
+      }
+    }
+
+    h2 {
+      font-size: 24px;
+      font-weight: 400;
+      @include adaptive-value("font-size", 24, 18, 1);
+      text-align: center;
+      line-height: 100%;
+      @include font-with-spacing(24px)
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      row-gap: 18px;
+      width: 100%;
+
+      .input_wrap {
+        overflow: hidden;
+
+        &::after {
+          content: url(../images/line_2.svg);
+          display: flex;
+          margin-left: -10px;
+        }
+      }
+
+      input {
+        width: 100%;
+        background-color: transparent;
+        border: none;
+        font-size: 18px;
+        @include adaptive-value("font-size", 18, 16, 1);
+        line-height: calc(20 / 18);
+        @include font-with-spacing(18px);
+        color: $white;
+
+        @include placeholder {
+          font-size: 18px;
+          @include adaptive-value("font-size", 18, 16, 1);
+          line-height: calc(20 / 18);
+          @include font-with-spacing(18px);
+          color: #AAAAAA;
+        }
+      }
+    }
+  }
+
+  .content {
+    display: grid;
+    grid-template-columns: 1fr;
+    height: 100%;
+  }
+
+  .right_col {
+    width: 100%;
+    text-align: end;
+    margin-left: auto;
+
+    p {
+      font-size: 22px;
+      @include adaptive-value("font-size", 22, 16, 1);
+      line-height: calc(24 / 22);
+      @include font-with-spacing(22px)
+    }
+  }
+}

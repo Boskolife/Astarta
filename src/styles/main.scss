@@ -36,3 +36,7 @@ $media-expressions: (
 @import 'layout/header';
 @import 'layout/common';
 @import 'layout/footer';
+
+@import 'components/sections';
+@import 'components/buttons';
+@import 'components/sound-button';
