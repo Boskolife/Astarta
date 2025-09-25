@@ -4,7 +4,11 @@
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
-  padding: max(15vh, 120px) 0;
+  padding: max(11vh, 70px) 0;
+
+  @include media ("<tablet") {
+    padding: max(5vh, 90px) 0;
+  }
 
   &.footer-section {
     padding: 0;
