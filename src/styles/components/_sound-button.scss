@@ -35,6 +35,10 @@
     padding: 0;
     transition: all 0.3s ease;
 
+    @include media ("<phone") {
+      margin: 0;
+    }
+
     &:hover {
       transform: scale(1.1);
 
