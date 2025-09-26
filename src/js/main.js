@@ -173,7 +173,7 @@ function animateSectionBlocks(section) {
     block.setAttribute('data-animation-index', index);
   });
 
-  // Показываем все блоки сразу без задержки
+  // Показываем все блоки мгновенно без transition
   contentBlocks.forEach((block, index) => {
     console.log(
       `Animating block ${index + 1}/${contentBlocks.length}:`,
@@ -181,8 +181,15 @@ function animateSectionBlocks(section) {
       block.className,
     );
 
+    // Временно отключаем transition для мгновенного появления
+    block.style.transition = 'none';
     block.classList.remove('animate-out');
     block.classList.add('animate-in');
+    
+    // Восстанавливаем transition после появления
+    requestAnimationFrame(() => {
+      block.style.transition = '';
+    });
   });
 
   // После показа всех блоков сразу запускаем анимацию печати для серого текста
