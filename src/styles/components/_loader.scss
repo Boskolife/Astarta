@@ -1,8 +1,8 @@
 // =============================================================================
-// LOADER COMPONENT - Компонент лоадера
+// SITE LOADER COMPONENT - Компонент лоадера сайта
 // =============================================================================
 
-.video-loader {
+.site-loader {
   position: fixed;
   top: 0;
   left: 0;
@@ -12,7 +12,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 9999;
   opacity: 1;
   visibility: visible;
   transition: opacity 0.5s ease, visibility 0.5s ease;
@@ -27,7 +27,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 24px;
   }
 
   .loader-spinner {
@@ -53,6 +53,10 @@
   }
 
   @include media ("<tablet") {
+    .loader-content {
+      gap: 20px;
+    }
+
     .loader-spinner {
       width: 50px;
       height: 50px;

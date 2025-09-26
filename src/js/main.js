@@ -108,12 +108,13 @@ function loadVideoImmediately(video) {
 const $video = document.getElementById('video');
 const $videoBackward = document.getElementById('video-backward');
 const $sections = Array.from(document.querySelectorAll('.fp-section'));
-const $videoLoader = document.getElementById('video-loader');
+const $siteLoader = document.getElementById('site-loader');
 
 // Основные переменные
 let fullPageInstance = null;
 let currentSectionIndex = 0;
 let isTransitioning = false;
+let introStarted = false;
 let returningFromFooter = false;
 let scrollingSpeed = 2500;
 let segmentStopRafId = null;
@@ -669,40 +670,22 @@ function detachIntroVideoGuards() {
   }
 }
 
-// Скрыть интерфейс для интро
-function hideUIForIntro() {
-  // Скрываем все элементы интерфейса, кроме видео, помечая их для последующего восстановления
-  const bodyChildren = Array.from(document.body.children);
-  bodyChildren.forEach((el) => {
-    if (el === $video) return;
-
-    // Сохраняем текущие классы видимости перед скрытием
-    const hasVisible = el.classList.contains('visible');
-    const hasHidden = el.classList.contains('hidden');
-
-    el.setAttribute('data-intro-visible', hasVisible ? '1' : '0');
-    el.setAttribute('data-intro-hidden', hasHidden ? '1' : '0');
-
-    // Скрываем элемент
-    el.classList.add('hidden');
-    el.classList.remove('visible');
-    el.setAttribute('data-intro-hidden', '1');
-  });
-}
 
 // Показать интерфейс после интро
 function showUIAfterIntro() {
-  // Восстанавливаем только те элементы, которые скрыли для интро
-  const hiddenEls = document.querySelectorAll('[data-intro-hidden="1"]');
-  hiddenEls.forEach((el) => {
-    // Теперь элементы по умолчанию скрыты; после интро просто показываем их
+  // Показываем все UI элементы после интро
+  const uiElements = document.querySelectorAll('.ui-element');
+  uiElements.forEach((el) => {
     el.classList.remove('hidden');
     el.classList.add('visible');
-
-    // Очищаем временные атрибуты
-    el.removeAttribute('data-intro-visible');
-    el.removeAttribute('data-intro-hidden');
   });
+  
+  // Также показываем хедер отдельно, если он не имеет класса ui-element
+  const header = document.querySelector('.header');
+  if (header && !header.classList.contains('ui-element')) {
+    header.classList.remove('hidden');
+    header.classList.add('visible');
+  }
 }
 
 // Запуск интро при загрузке сайта
@@ -714,7 +697,6 @@ function startIntroFlow() {
     return;
   }
 
-  hideUIForIntro();
   applyFullpageScaffoldClasses();
   attachIntroVideoGuards();
 
@@ -1100,16 +1082,16 @@ $video?.addEventListener('loadedmetadata', () => {
     }
   } catch {}
   
-  // Проверяем готовность после загрузки метаданных
-  if (checkVideoReadiness()) {
-    hideLoader();
+  // Проверяем готовность сайта после загрузки метаданных основного видео
+  if (checkSiteReadiness()) {
+    hideSiteLoader();
   }
 });
 
-// Обработчик готовности видео для воспроизведения
-$video?.addEventListener('canplaythrough', () => {
-  if (checkVideoReadiness()) {
-    hideLoader();
+// Обработчик готовности основного видео
+$video?.addEventListener('canplay', () => {
+  if (checkSiteReadiness()) {
+    hideSiteLoader();
   }
 });
 
@@ -1125,12 +1107,10 @@ $videoBackward?.addEventListener('loadedmetadata', () => {
       console.warn('Video durations mismatch:', mainDuration, backwardDuration);
     }
   }
-});
-
-// Обработчик готовности обратного видео для воспроизведения
-$videoBackward?.addEventListener('canplaythrough', () => {
-  if (checkVideoReadiness()) {
-    hideLoader();
+  
+  // Проверяем готовность сайта после загрузки метаданных обратного видео
+  if (checkSiteReadiness()) {
+    hideSiteLoader();
   }
 });
 
@@ -1158,28 +1138,65 @@ function cleanup() {
 
 window.addEventListener('beforeunload', cleanup);
 
-// Функции для управления лоадером
-function showLoader() {
-  if ($videoLoader) {
-    $videoLoader.classList.remove('hidden');
+// Функции для управления лоадером сайта
+function showSiteLoader() {
+  if ($siteLoader) {
+    $siteLoader.classList.remove('hidden');
   }
 }
 
-function hideLoader() {
-  if ($videoLoader) {
-    $videoLoader.classList.add('hidden');
+function hideSiteLoader() {
+  if ($siteLoader) {
+    $siteLoader.classList.add('hidden');
+    // Запускаем полную инициализацию после скрытия лоадера
+    startAfterLoad();
   }
 }
 
-// Функция для проверки готовности обоих видео
-function checkVideoReadiness() {
-  // Основное видео должно быть готово к воспроизведению
-  const mainVideoReady = $video && $video.readyState >= 3; // HAVE_FUTURE_DATA
+// Функция для проверки готовности сайта
+function checkSiteReadiness() {
+  // Проверяем готовность основного видео
+  const mainVideoReady = $video && $video.readyState >= 2; // HAVE_CURRENT_DATA
   
-  // Обратное видео должно быть готово к воспроизведению
-  const backwardVideoReady = $videoBackward && $videoBackward.readyState >= 3; // HAVE_FUTURE_DATA
+  // Проверяем готовность обратного видео (может быть менее готово)
+  const backwardVideoReady = $videoBackward && $videoBackward.readyState >= 1; // HAVE_METADATA
   
-  return mainVideoReady && backwardVideoReady;
+  // Проверяем, что DOM полностью загружен
+  const domReady = document.readyState === 'complete';
+  
+  return mainVideoReady && backwardVideoReady && domReady;
+}
+
+// Функция для полной инициализации после загрузки сайта
+function startAfterLoad() {
+  // Проверяем, что инициализация еще не запускалась
+  if (introStarted) {
+    return;
+  }
+  
+  introStarted = true;
+  
+  try {
+    // Инициализируем шрифты
+    initFonts();
+    
+    // Инициализируем CSS классы до запуска FullPage
+    initializeContentClasses();
+    
+    // Инициализируем кнопки звука
+    initSoundButtons();
+    
+    // Стартуем интро, а инициализацию FullPage выполним после его завершения
+    startIntroFlow();
+    
+    // Делаем функцию изменения скорости доступной глобально
+    window.setScrollSpeed = setScrollSpeed;
+    console.log(
+      'Use setScrollSpeed(milliseconds) to change scroll and video speed',
+    );
+  } catch (error) {
+    console.error('Initialization error after load:', error);
+  }
 }
 
 // Функция для инициализации базовых CSS классов
@@ -1196,10 +1213,12 @@ function initializeContentClasses() {
   const soundButtonWrap = document.querySelector('.sound_button_wrap');
   const soundButtonText = soundButtonWrap?.querySelector('p');
   const arrowDownWrap = document.querySelector('.arrow_down_wrap');
+  const header = document.querySelector('.header');
   
   if (soundButtonWrap) soundButtonWrap.classList.add('ui-element');
   if (soundButtonText) soundButtonText.classList.add('ui-element');
   if (arrowDownWrap) arrowDownWrap.classList.add('ui-element');
+  if (header) header.classList.add('ui-element');
 }
 
 // Инициализация шрифтов
@@ -1226,13 +1245,7 @@ function initFonts() {
 window.addEventListener('load', () => {
   try {
     // Показываем лоадер
-    showLoader();
-    
-    // Инициализируем шрифты
-    initFonts();
-    
-    // Инициализируем CSS классы до запуска FullPage
-    initializeContentClasses();
+    showSiteLoader();
     
     // Загружаем оба видео сразу без ожидания взаимодействия
     loadVideoImmediately($video);
@@ -1245,38 +1258,22 @@ window.addEventListener('load', () => {
     if ($videoBackward) {
       primeVideoPlayback($videoBackward);
     }
-    initSoundButtons();
     
-    // Проверяем, готовы ли оба видео уже сейчас
-    if (checkVideoReadiness()) {
-      hideLoader();
+    // Проверяем готовность сайта
+    if (checkSiteReadiness()) {
+      hideSiteLoader();
     }
     
-    // Периодическая проверка готовности видео
+    // Периодическая проверка готовности сайта
     const checkInterval = setInterval(() => {
-      if (checkVideoReadiness()) {
-        hideLoader();
+      if (checkSiteReadiness()) {
+        hideSiteLoader();
         clearInterval(checkInterval);
       }
     }, 100);
-    
-    // Таймаут для принудительного скрытия лоадера через 10 секунд
-    setTimeout(() => {
-      hideLoader();
-      clearInterval(checkInterval);
-    }, 10000);
-    
-    // Стартуем интро, а инициализацию FullPage выполним после его завершения
-    startIntroFlow();
-    
-    // Делаем функцию изменения скорости доступной глобально
-    window.setScrollSpeed = setScrollSpeed;
-    console.log(
-      'Use setScrollSpeed(milliseconds) to change scroll and video speed',
-    );
   } catch (error) {
     console.error('Initialization error:', error);
     // В случае ошибки скрываем лоадер
-    hideLoader();
+    hideSiteLoader();
   }
 });
