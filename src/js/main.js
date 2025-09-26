@@ -157,6 +157,14 @@ function animateSectionBlocks(section) {
 
   if (contentBlocks.length === 0) return;
 
+  console.log(`Found ${contentBlocks.length} blocks in section ${section.getAttribute('data-seg')}:`, 
+    contentBlocks.map(block => ({
+      tag: block.tagName,
+      class: block.className,
+      text: block.textContent?.substring(0, 50) + '...'
+    }))
+  );
+
   // Добавляем базовый класс и сбрасываем состояние
   contentBlocks.forEach((block, index) => {
     block.classList.add('content-block');
@@ -166,8 +174,17 @@ function animateSectionBlocks(section) {
 
   // Показываем все блоки мгновенно без transition
   contentBlocks.forEach((block, index) => {
+    console.log(`Animating block ${index + 1}:`, block.tagName, block.className);
+    
+    // Временно отключаем transition для мгновенного появления
+    block.style.transition = 'none';
     block.classList.remove('animate-out');
     block.classList.add('animate-in');
+    
+    // Восстанавливаем transition после появления
+    requestAnimationFrame(() => {
+      block.style.transition = '';
+    });
   });
 
   // После показа всех блоков сразу запускаем анимацию печати для серого текста
