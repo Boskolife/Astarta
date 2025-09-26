@@ -157,34 +157,17 @@ function animateSectionBlocks(section) {
 
   if (contentBlocks.length === 0) return;
 
-  console.log(
-    `Animating ${contentBlocks.length} blocks in section ${section.getAttribute(
-      'data-seg',
-    )}`,
-  );
-
   // Добавляем базовый класс и сбрасываем состояние
   contentBlocks.forEach((block, index) => {
     block.classList.add('content-block');
     block.classList.remove('animate-in');
     block.classList.add('animate-out');
-
-    // Добавляем индекс для отладки
-    block.setAttribute('data-animation-index', index);
   });
 
   // Показываем все блоки мгновенно без transition
   contentBlocks.forEach((block, index) => {
-    console.log(
-      `Animating block ${index + 1}/${contentBlocks.length}:`,
-      block.tagName,
-      block.className,
-    );
-
-    // Временно отключаем transition для мгновенного появления
     block.classList.remove('animate-out');
     block.classList.add('animate-in');
-    
   });
 
   // После показа всех блоков сразу запускаем анимацию печати для серого текста

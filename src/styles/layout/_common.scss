@@ -69,9 +69,18 @@ body {
     display: block;
     color: $gray;
 
+    opacity: 0;
+    visibility: hidden;
+
     .char,
     .word {
         display: inline-block;
+    }
+
+    &.animate-in {
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 0.8s ease, transform 0.8s ease;
     }
 
     &.typing-animation {
