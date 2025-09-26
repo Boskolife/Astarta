@@ -186,10 +186,6 @@ function animateSectionBlocks(section) {
     block.classList.remove('animate-out');
     block.classList.add('animate-in');
     
-    // Восстанавливаем transition после появления
-    requestAnimationFrame(() => {
-      block.style.transition = '';
-    });
   });
 
   // После показа всех блоков сразу запускаем анимацию печати для серого текста
