@@ -78,7 +78,6 @@
       .gray_text {
         &:nth-child(1) {
           @include media ("<tablet") {
-            max-width: 220px;
             margin-right: auto;
             text-align: start;
           }
@@ -129,13 +128,16 @@
   &.fourth-section {
 
     .number_wrap {
-      width: 242px;
+      max-width: 242px;
+      width: 100%;
       position: absolute;
       top: 55%;
       left: 55%;
       transform: translate(-50%, -50%);
 
       @include media ("<tablet") {
+        max-width: 125px;
+        width: 100%;
         top: 45%;
         left: 50%;
         transform: translate(-20%, -50%);
@@ -192,7 +194,8 @@
   &.fifth-section {
 
     .number_wrap {
-      width: 325px;
+      max-width: 325px;
+      width: 100%;
       height: 108px;
       position: absolute;
       top: 40%;
@@ -200,7 +203,8 @@
       transform: translate(-50%, -50%);
 
       @include media ("<phone") {
-        left: 50%;
+        max-width: 160px;
+        left: 35%;
       }
     }
 
@@ -401,9 +405,10 @@
 
     p {
       font-size: 22px;
-      @include adaptive-value("font-size", 22, 16, 1);
+      @include adaptive-value("font-size", 22, 14, 1);
       line-height: calc(24 / 22);
-      @include font-with-spacing(22px)
+      @include font-with-spacing(22px);
+      text-wrap: balance;
     }
   }
 }
