@@ -182,7 +182,6 @@ function animateSectionBlocks(section) {
     );
 
     // Временно отключаем transition для мгновенного появления
-    block.style.transition = 'none';
     block.classList.remove('animate-out');
     block.classList.add('animate-in');
     
