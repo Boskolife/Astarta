@@ -108,21 +108,23 @@ body {
     }
 }
 
-// .content-block {
-//     opacity: 0;
-//     transition: opacity 0.8s ease, transform 0.8s ease;
+// Унифицированная система анимации
+.animate {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
 
-//     &.animate-in {
-//         opacity: 1;
-//         visibility: visible;
-//         transition: opacity 0.8s ease, transform 0.8s ease;
-//     }
+    &.show {
+        opacity: 1;
+        visibility: visible;
+    }
 
-//     &.animate-out {
-//         opacity: 0;
-//         transition: opacity 0.4s ease, transform 0.4s ease;
-//     }
-// }
+    &.hide {
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+}
 
 .ui-element {
     transition: opacity 0.5s ease, visibility 0.5s ease;

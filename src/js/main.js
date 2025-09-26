@@ -156,16 +156,15 @@ function animateSectionBlocks(section) {
   if (contentBlocks.length === 0) return;
 
   // Добавляем базовый класс и сбрасываем состояние
-  contentBlocks.forEach((block, index) => {
-    block.classList.add('content-block');
-    block.classList.remove('animate-in');
-    block.classList.add('animate-out');
+  contentBlocks.forEach((block) => {
+    block.classList.add('animate', 'hide');
+    block.classList.remove('show');
   });
 
   // Показываем все блоки с плавной анимацией
-  contentBlocks.forEach((block, index) => {
-    block.classList.remove('animate-out');
-    block.classList.add('animate-in');
+  contentBlocks.forEach((block) => {
+    block.classList.remove('hide');
+    block.classList.add('show');
   });
 
   // После показа всех блоков сразу запускаем анимацию печати для серого текста
@@ -200,9 +199,8 @@ function resetSectionBlocks(section) {
     'p, .form_wrap, .number_wrap, .middle_col',
   );
   contentBlocks.forEach((block) => {
-    block.classList.add('content-block');
-    block.classList.remove('animate-in');
-    block.classList.add('animate-out');
+    block.classList.add('animate', 'hide');
+    block.classList.remove('show');
   });
 }
 
@@ -711,16 +709,16 @@ function showFormElementsWithoutAnimation(section) {
 
   // Принудительно показываем все элементы формы
   if (formWrap) {
-    formWrap.classList.add('animate-in');
-    formWrap.classList.remove('animate-out', 'content-block');
+    formWrap.classList.add('show');
+    formWrap.classList.remove('hide', 'animate');
     formWrap.style.opacity = '1';
     formWrap.style.visibility = 'visible';
   }
 
   // Показываем все параграфы
   paragraphs.forEach((p) => {
-    p.classList.add('animate-in');
-    p.classList.remove('animate-out', 'content-block');
+    p.classList.add('show');
+    p.classList.remove('hide', 'animate');
     p.style.opacity = '1';
     p.style.visibility = 'visible';
   });
@@ -1087,7 +1085,7 @@ function initializeContentClasses() {
     'p, .form_wrap, .number_wrap, .middle_col',
   );
   allContentBlocks.forEach((block) => {
-    block.classList.add('content-block', 'animate-out');
+    block.classList.add('animate', 'hide');
   });
 
   // Добавляем базовые классы для UI элементов
