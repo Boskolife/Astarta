@@ -83,20 +83,31 @@ function loadVideoImmediately(video) {
 
   try {
     video.muted = true;
-    // Принудительно загружаем видео без попытки воспроизведения
+    // Принудительно загружаем видео
     video.load();
     
-    // Не пытаемся запустить видео сразу - это нарушает политику автовоспроизведения
-    // Видео будет готово к воспроизведению после загрузки метаданных
+    // Пытаемся запустить и сразу остановить для инициализации
+    const p = video.play();
+    if (p && p.then) {
+      p.then(() => {
+        video.pause();
+        video.currentTime = 0;
+      }).catch((error) => {
+        console.warn('Video play error:', error);
+      });
+    } else {
+      video.play();
+      video.pause();
+      video.currentTime = 0;
+    }
   } catch (error) {
-    console.warn('Video load error:', error);
+    console.warn('Video playback error:', error);
   }
 }
 
 const $video = document.getElementById('video');
 const $videoBackward = document.getElementById('video-backward');
 const $sections = Array.from(document.querySelectorAll('.fp-section'));
-const $siteLoader = document.getElementById('site-loader');
 
 // Основные переменные
 let fullPageInstance = null;
@@ -110,7 +121,6 @@ let isIntroPlayed = false;
 let introClickHandler = null;
 let introPointerHandler = null;
 let introPauseHandler = null;
-let loaderHidden = false;
 
 // Флаг для предотвращения двойной инициализации анимации
 let isInitialAnimationStarted = false;
@@ -450,6 +460,7 @@ function playVideoSegment(fromTime, toTime, durationMs, onComplete) {
     playVideoSegmentReverse(fromTime, toTime, durationMs, onComplete);
   }
 }
+
 
 // Обратное проигрывание сегмента: подготавливаем обратное видео без мигания
 function playVideoSegmentReverse(fromTime, toTime, durationMs, onComplete) {
@@ -1063,21 +1074,16 @@ $video?.addEventListener('loadedmetadata', () => {
     VIDEO_SEGMENTS[i][1] = clamp(VIDEO_SEGMENTS[i][1], 0, dur);
   }
 
-  // Не устанавливаем currentTime здесь - это может вызывать проблемы с загрузкой
-  // Время будет установлено позже при первом воспроизведении
+  // После интро видео начинается с первого сегмента секций (VIDEO_SEGMENTS[2])
+  try {
+    const startT = VIDEO_SEGMENTS[2] ? VIDEO_SEGMENTS[2][0] : 0;
+    if ($video && $video.readyState >= 1) {
+      $video.currentTime = startT;
+    }
+  } catch {}
   
-  // Проверяем готовность сайта после загрузки метаданных основного видео
-  if (checkSiteReadiness() && !loaderHidden) {
-    hideSiteLoader();
-  }
 });
 
-// Обработчик готовности основного видео
-$video?.addEventListener('canplay', () => {
-  if (checkSiteReadiness() && !loaderHidden) {
-    hideSiteLoader();
-  }
-});
 
 // Обработчик загрузки метаданных обратного видео
 $videoBackward?.addEventListener('loadedmetadata', () => {
@@ -1092,10 +1098,6 @@ $videoBackward?.addEventListener('loadedmetadata', () => {
     }
   }
   
-  // Проверяем готовность сайта после загрузки метаданных обратного видео
-  if (checkSiteReadiness() && !loaderHidden) {
-    hideSiteLoader();
-  }
 });
 
 // Обработчики ошибок для видео
@@ -1148,76 +1150,6 @@ function cleanup() {
 
 window.addEventListener('beforeunload', cleanup);
 
-// Функции для управления лоадером сайта
-function showSiteLoader() {
-  if ($siteLoader) {
-    $siteLoader.classList.remove('hidden');
-  }
-}
-
-function hideSiteLoader() {
-  if ($siteLoader && !loaderHidden) {
-    loaderHidden = true;
-    $siteLoader.classList.add('hidden');
-    // Запускаем полную инициализацию после скрытия лоадера
-    startAfterLoad();
-  }
-}
-
-// Функция для проверки готовности сайта
-function checkSiteReadiness() {
-  // Проверяем готовность основного видео (достаточно метаданных)
-  const mainVideoReady = $video && $video.readyState >= 1; // HAVE_METADATA
-  
-  // Проверяем готовность обратного видео (достаточно метаданных)
-  const backwardVideoReady = $videoBackward && $videoBackward.readyState >= 1; // HAVE_METADATA
-  
-  // Проверяем, что DOM полностью загружен
-  const domReady = document.readyState === 'complete';
-  
-  // Логируем состояние для отладки
-  if (!mainVideoReady || !backwardVideoReady || !domReady) {
-    console.log('Site readiness check:', {
-      mainVideoReady: mainVideoReady ? $video.readyState : 'no video',
-      backwardVideoReady: backwardVideoReady ? $videoBackward.readyState : 'no video',
-      domReady: domReady ? document.readyState : 'not ready'
-    });
-  }
-  
-  return mainVideoReady && backwardVideoReady && domReady;
-}
-
-// Функция для полной инициализации после загрузки сайта
-function startAfterLoad() {
-  // Проверяем, что инициализация еще не запускалась
-  if (introStarted) {
-    return;
-  }
-  
-  introStarted = true;
-  
-  try {
-    // Инициализируем шрифты
-    initFonts();
-    
-    // Инициализируем CSS классы до запуска FullPage
-    initializeContentClasses();
-    
-    // Инициализируем кнопки звука
-    initSoundButtons();
-    
-    // Стартуем интро, а инициализацию FullPage выполним после его завершения
-    startIntroFlow();
-    
-    // Делаем функцию изменения скорости доступной глобально
-    window.setScrollSpeed = setScrollSpeed;
-    console.log(
-      'Use setScrollSpeed(milliseconds) to change scroll and video speed',
-    );
-  } catch (error) {
-    console.error('Initialization error after load:', error);
-  }
-}
 
 // Функция для инициализации базовых CSS классов
 function initializeContentClasses() {
@@ -1264,9 +1196,6 @@ function initFonts() {
 // Инициализация при загрузке страницы
 window.addEventListener('load', () => {
   try {
-    // Показываем лоадер
-    showSiteLoader();
-    
     // Загружаем оба видео сразу без ожидания взаимодействия
     loadVideoImmediately($video);
     if ($videoBackward) {
@@ -1279,26 +1208,24 @@ window.addEventListener('load', () => {
       primeVideoPlayback($videoBackward);
     }
     
-    // Проверяем готовность сайта
-    if (checkSiteReadiness() && !loaderHidden) {
-      hideSiteLoader();
-    }
+    // Инициализируем шрифты
+    initFonts();
     
-    // Периодическая проверка готовности сайта
-    const checkInterval = setInterval(() => {
-      if (checkSiteReadiness() && !loaderHidden) {
-        hideSiteLoader();
-        clearInterval(checkInterval);
-      }
-    }, 100);
+    // Инициализируем CSS классы до запуска FullPage
+    initializeContentClasses();
+    
+    // Инициализируем кнопки звука
+    initSoundButtons();
+    
+    // Стартуем интро, а инициализацию FullPage выполним после его завершения
+    startIntroFlow();
+    
+    // Делаем функцию изменения скорости доступной глобально
+    window.setScrollSpeed = setScrollSpeed;
+    console.log(
+      'Use setScrollSpeed(milliseconds) to change scroll and video speed',
+    );
   } catch (error) {
     console.error('Initialization error:', error);
-    // В случае ошибки скрываем лоадер и очищаем интервал
-    if (typeof checkInterval !== 'undefined') {
-      clearInterval(checkInterval);
-    }
-    if (!loaderHidden) {
-      hideSiteLoader();
-    }
   }
 });
