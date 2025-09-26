@@ -173,7 +173,7 @@ function animateSectionBlocks(section) {
 }
 
 // Функция для запуска анимации печати после появления всех блоков
-function startTypingAnimation(section) {
+async function startTypingAnimation(section) {
   const grayTexts = section.querySelectorAll('.gray_text');
   
   if (grayTexts.length === 0) return;
@@ -184,30 +184,12 @@ function startTypingAnimation(section) {
   });
   
   // Запускаем анимацию последовательно для каждого элемента
-  let currentIndex = 0;
-  const animateNextGrayText = () => {
-    if (currentIndex < grayTexts.length) {
-      const grayText = grayTexts[currentIndex];
-      
-      // Запускаем анимацию для текущего элемента
-      createTypingAnimation(grayText, TYPING_ANIMATION_DELAY);
-      
-      // Вычисляем задержку до следующего элемента
-      // Берем количество символов в текущем элементе и умножаем на задержку
-      const textLength = grayText.textContent?.length || 0;
-      const delayToNext = textLength * TYPING_ANIMATION_DELAY + 200;
-      
-      currentIndex++;
-      
-      // Запускаем следующий элемент через рассчитанную задержку
-      if (currentIndex < grayTexts.length) {
-        setTimeout(animateNextGrayText, delayToNext);
-      }
-    }
-  };
-  
-  // Запускаем первый элемент
-  animateNextGrayText();
+  for (let i = 0; i < grayTexts.length; i++) {
+    const grayText = grayTexts[i];
+    
+    // Ждем завершения анимации текущего элемента, затем сразу запускаем следующий
+    await createTypingAnimation(grayText, TYPING_ANIMATION_DELAY);
+  }
 }
 
 // Функция для сброса анимации блоков секции
@@ -226,7 +208,7 @@ function resetSectionBlocks(section) {
 
 // Функция для создания анимации печати
 function createTypingAnimation(element, delay = 100) {
-  if (!element) return;
+  if (!element) return Promise.resolve();
 
   // Если элемент ещё не подготовлен — оборачиваем символы в .char и включаем режим анимации
   if (!element.classList.contains('typing-initialized')) {
@@ -267,11 +249,24 @@ function createTypingAnimation(element, delay = 100) {
   const charElements = element.querySelectorAll('.char');
   charElements.forEach((el) => el.classList.remove('active'));
 
-  // Затем последовательно активируем символы с задержкой
-  charElements.forEach((charEl, index) => {
-    setTimeout(() => {
-      charEl.classList.add('active');
-    }, index * delay);
+  // Возвращаем Promise, который разрешается после завершения анимации
+  return new Promise((resolve) => {
+    if (charElements.length === 0) {
+      resolve();
+      return;
+    }
+
+    // Затем последовательно активируем символы с задержкой
+    charElements.forEach((charEl, index) => {
+      setTimeout(() => {
+        charEl.classList.add('active');
+        
+        // Если это последний символ, разрешаем Promise
+        if (index === charElements.length - 1) {
+          resolve();
+        }
+      }, index * delay);
+    });
   });
 }
 
@@ -1008,14 +1003,32 @@ function handleHeaderButtonClick(event) {
 // Инициализация кнопок звука
 function initSoundButtons() {
   const soundButtons = document.querySelectorAll('.toggle-sound');
-  let isSoundOn = false;
 
   soundButtons.forEach((button) => {
+    // Изначально звук включен (muted = false)
+    let isSoundOn = true;
+    const soundWrap = button.closest('.sound_button_wrap');
+    
+    // Инициализация начального состояния
+    if (soundWrap) {
+      soundWrap.classList.remove('sound-off');
+    }
+    
     button.addEventListener('click', () => {
       isSoundOn = !isSoundOn;
       const span = button.querySelector('span');
+      
       if (span) {
-        span.textContent = isSoundOn ? 'Sound Off' : 'Sound On';
+        span.textContent = isSoundOn ? 'Sound On' : 'Sound Off';
+      }
+
+      // Переключение иконок
+      if (soundWrap) {
+        if (isSoundOn) {
+          soundWrap.classList.remove('sound-off');
+        } else {
+          soundWrap.classList.add('sound-off');
+        }
       }
 
       if ($video) {

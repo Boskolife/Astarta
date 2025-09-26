@@ -20,7 +20,7 @@
     @include font-with-spacing(19px);
     transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
 
-    @include media ("<phone") {
+    @include media ("<tablet") {
       display: none;
     }
   }
@@ -88,15 +88,14 @@
 }
 
 // Состояние когда звук выключен
-.sound-off {
+.sound_button_wrap.sound-off {
   .toggle-sound {
-    .icon-on {
-      display: none;
-    }
-
     .icon-off {
       display: block;
     }
 
+    .icon-on {
+      display: none;
+    }
   }
 }

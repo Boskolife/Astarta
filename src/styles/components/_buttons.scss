@@ -41,6 +41,25 @@
       0 0 20px rgba(255, 255, 255, 0.5);
   }
 
+  // Управление отображением текста в зависимости от ширины экрана
+  .btn-text-full {
+    display: inline;
+  }
+
+  .btn-text-short {
+    display: none;
+  }
+
+  @media (max-width: 560px) {
+    .btn-text-full {
+      display: none;
+    }
+
+    .btn-text-short {
+      display: inline;
+    }
+  }
+
   // Светящееся гало
   &::before {
     content: "";

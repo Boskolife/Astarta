@@ -7,7 +7,8 @@
   padding: max(11vh, 70px) 0;
 
   @include media ("<tablet") {
-    padding: max(5vh, 90px) 0;
+    padding-top: 80px;
+    padding-bottom: 70px;
   }
 
   &.footer-section {
@@ -119,7 +120,6 @@
           content: url(../images/line.svg);
           display: inline-block;
           height: 1px;
-          margin-top: 12px;
         }
       }
 
@@ -183,7 +183,6 @@
             content: url(../images/line.svg);
             display: inline-block;
             height: 1px;
-            margin-top: 12px;
           }
         }
       }
@@ -235,7 +234,6 @@
             content: url(../images/line.svg);
             display: inline-block;
             height: 1px;
-            margin-top: 12px;
           }
         }
       }
