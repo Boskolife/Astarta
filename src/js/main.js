@@ -174,34 +174,20 @@ function animateSectionBlocks(section) {
     block.setAttribute('data-animation-index', index);
   });
 
-  // Показываем блоки последовательно
-  let blockIndex = 0;
-  const showNextBlock = () => {
-    if (blockIndex < contentBlocks.length) {
-      const block = contentBlocks[blockIndex];
-      
-      console.log(
-        `Animating block ${blockIndex + 1}/${contentBlocks.length}:`,
-        block.tagName,
-        block.className,
-      );
-      
-      block.classList.remove('animate-out');
-      block.classList.add('animate-in');
-      blockIndex++;
+  // Показываем все блоки сразу без задержки
+  contentBlocks.forEach((block, index) => {
+    console.log(
+      `Animating block ${index + 1}/${contentBlocks.length}:`,
+      block.tagName,
+      block.className,
+    );
+    
+    block.classList.remove('animate-out');
+    block.classList.add('animate-in');
+  });
 
-      if (blockIndex < contentBlocks.length) {
-        // Продолжаем показывать следующий блок
-        setTimeout(showNextBlock, BLOCK_ANIMATION_DELAY);
-      } else {
-        // После показа всех блоков сразу запускаем анимацию печати для серого текста
-          startTypingAnimation(section);
-      }
-    }
-  };
-
-  // Запускаем анимацию сразу без задержки
-  showNextBlock();
+  // После показа всех блоков сразу запускаем анимацию печати для серого текста
+  startTypingAnimation(section);
 }
 
 // Функция для запуска анимации печати после появления всех блоков
