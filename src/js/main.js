@@ -112,7 +112,6 @@ const $sections = Array.from(document.querySelectorAll('.fp-section'));
 let fullPageInstance = null;
 let currentSectionIndex = 0;
 let isTransitioning = false;
-let introStarted = false;
 let returningFromFooter = false;
 let scrollingSpeed = 2500;
 let segmentStopRafId = null;

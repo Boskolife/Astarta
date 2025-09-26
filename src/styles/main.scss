@@ -7,7 +7,6 @@ $breakpoints: (
 	'widescreen': 1200px
 );
 
-// keywords
 $media-expressions: (
 	'screen': 'screen',
 	'print': 'print',
@@ -18,7 +17,6 @@ $media-expressions: (
 	'retina3x': '(-webkit-min-device-pixel-ratio: 2.5), (min-resolution: 240dpi)'
 );
 
-// ligatured operators ≥ ≤
 
 @import 'vendors/include-media';
 @import 'vendors/normalize';

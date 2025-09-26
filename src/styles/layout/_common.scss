@@ -23,11 +23,10 @@ body {
     height: var(--stage-h);
 }
 
-// Стек для двух видеослоев без миганий
 .video-stack {
     position: fixed;
     inset: 0;
-    z-index: -1; // под интерфейсом
+    z-index: -1;
 }
 
 .video-stack .video {
@@ -108,7 +107,6 @@ body {
     }
 }
 
-// Унифицированная система анимации
 .animate {
     opacity: 0;
     visibility: hidden;

@@ -1,6 +1,3 @@
-// Colors
-// Color calculator - http://razorjam.github.io/sasscolourfunctioncalculator/
-// Color names - http://name-of-color.com/
 
 $black: #010101;
 $white: #FAFAFA;
@@ -15,10 +12,8 @@ $base-font-serif: 'Times New Roman',
 'Georgia',
 serif;
 
-// This is the default html and body font-size for the base rem value.
 $rem-base: 16px;
 
-// Body
 $base-text-color: $white !default;
 $base-background-color: $black !default;
 $font-size-base: 16px !default;
@@ -29,22 +24,18 @@ $vertical-rhythm: ($line-height-base * 1em);
 
 $base-min-width: 320px;
 
-// Liks
 $base-link-color: $black;
 
-// Buttons 
 $btn-color: $white !default;
 $btn-background: $black !default;
 $btn-padding: 0.4em 0.7em !default;
 $btn-font-size: inherit !default;
 
-// Forms
 $form-element-padding: $btn-padding !default;
 $form-element-border-color: $gray !default;
 $form-element-focus-border-color: $black !default;
 $placeholder-color: $gray !default;
 
-// Headers
 $h1-font-size: 78px;
 $h2-font-size: 52px;
 $h3-font-size: 24px;

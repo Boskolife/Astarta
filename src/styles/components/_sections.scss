@@ -11,7 +11,6 @@
     padding-bottom: 70px;
   }
 
-  // Используем унифицированную систему анимации
   &.animate {
     opacity: 0;
     visibility: hidden;
@@ -113,7 +112,6 @@
       left: 55%;
       transform: translate(-50%, -50%);
 
-      // Принудительно применяем анимацию
       &.animate {
         opacity: 0;
         visibility: hidden;
@@ -171,7 +169,6 @@
       left: 55%;
       transform: translate(-50%, -50%);
 
-      // Принудительно применяем анимацию
       &.animate {
         opacity: 0;
         visibility: hidden;
@@ -256,7 +253,6 @@
       left: 40%;
       transform: translate(-50%, -50%);
 
-      // Принудительно применяем анимацию
       &.animate {
         opacity: 0;
         visibility: hidden;

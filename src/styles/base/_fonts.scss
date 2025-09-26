@@ -15,10 +15,8 @@
 
 @include font("SpaceMono", "SpaceMono-Regular", 400, normal);
 
-// Fallback fonts для лучшей производительности
 $font-fallback: 'Courier New', 'Courier', 'Monaco', 'Menlo', monospace;
 
-// Предотвращение FOUT (Flash of Unstyled Text)
 .fonts-loading {
   font-family: $font-fallback;
 }

@@ -22,14 +22,12 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-// adaptive images
 img {
     max-width: 100%;
     height: auto;
     vertical-align: top;
 }
 
-// google map fix
 .gm-style img {
     max-width: none
 }
