@@ -11,6 +11,18 @@
     padding-bottom: 70px;
   }
 
+  &.animate-in {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+
+  &.animate-out {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+
   &.footer-section {
     padding: 0;
     height: auto;
@@ -295,28 +307,10 @@
     .form_wrap {
       display: flex;
       flex-direction: column;
-
       row-gap: 36px;
       max-width: 425px;
       width: 100%;
       margin: 0 auto;
-      transition: none !important;
-
-      &.content-block {
-        opacity: 1 !important;
-        visibility: visible !important;
-        transition: none !important;
-      }
-    }
-
-    p {
-      transition: none !important;
-
-      &.content-block {
-        opacity: 1 !important;
-        visibility: visible !important;
-        transition: none !important;
-      }
     }
 
     &.keep-visible {
@@ -328,21 +322,11 @@
         opacity: 1 !important;
         visibility: visible !important;
         pointer-events: auto;
-
-        &.content-block {
-          opacity: 1 !important;
-          visibility: visible !important;
-        }
       }
 
       p {
         opacity: 1 !important;
         visibility: visible !important;
-
-        &.content-block {
-          opacity: 1 !important;
-          visibility: visible !important;
-        }
       }
     }
 

@@ -39,8 +39,7 @@ const VIDEO_SEGMENTS = [
 // Настройки для видео
 const TIME_WRITE_EPSILON = 1 / 120; // минимальный порог обновления currentTime
 
-// Настройки анимации блоков в секциях
-const BLOCK_ANIMATION_DELAY = 300; // Задержка между появлением блоков (мс)
+// Настройки анимации
 const TYPING_ANIMATION_DELAY = 50; // Задержка между символами в анимации печати
 
 function primeVideoPlayback(video) {
@@ -134,7 +133,6 @@ function animateSectionBlocks(section) {
 
   // Полностью пропускаем анимацию для секции с формой
   if (section.classList.contains('seventh-section')) {
-    console.log('Skipping animation for form section');
     return;
   }
 
@@ -157,14 +155,6 @@ function animateSectionBlocks(section) {
 
   if (contentBlocks.length === 0) return;
 
-  console.log(`Found ${contentBlocks.length} blocks in section ${section.getAttribute('data-seg')}:`, 
-    contentBlocks.map(block => ({
-      tag: block.tagName,
-      class: block.className,
-      text: block.textContent?.substring(0, 50) + '...'
-    }))
-  );
-
   // Добавляем базовый класс и сбрасываем состояние
   contentBlocks.forEach((block, index) => {
     block.classList.add('content-block');
@@ -174,8 +164,6 @@ function animateSectionBlocks(section) {
 
   // Показываем все блоки с плавной анимацией
   contentBlocks.forEach((block, index) => {
-    console.log(`Animating block ${index + 1}:`, block.tagName, block.className);
-    
     block.classList.remove('animate-out');
     block.classList.add('animate-in');
   });
@@ -294,8 +282,6 @@ function resetTypingAnimation(element) {
   element.classList.remove('typing-animation');
 }
 
-// Ранее использовалась проверка переходных сегментов — больше не нужна
-
 // Возвращает опорное время видео для секции (начало соответствующего видео-сегмента)
 function getSectionVideoAnchorTime(sectionIndex) {
   // Секция 0 соответствует VIDEO_SEGMENTS[2], секция 1 - VIDEO_SEGMENTS[4], и т.д.
@@ -362,10 +348,6 @@ function startVideoTransition(fromSectionIndex, toSectionIndex) {
   // Воспроизводим участок видео без постоянных записей currentTime
   playVideoSegment(fromT0, toT0, scrollingSpeed);
 
-  // Для отладки лог
-  console.log(
-    `Video segment play: ${fromT0}s -> ${toT0}s over ${scrollingSpeed}ms`,
-  );
 }
 
 // Воспроизвести участок видео с заданной длительностью, без постоянного currentTime-синка
@@ -717,7 +699,6 @@ function setScrollSpeed(newSpeed) {
     // Обновляем настройки FullPage.js
     fullPageInstance.destroy('all');
     initFullPage();
-    console.log(`Scroll speed updated to: ${newSpeed}ms`);
   }
 }
 
@@ -877,7 +858,6 @@ function initFullPage() {
 
     // Callbacks
     onLeave: function (origin, destination, direction, trigger) {
-      console.log('Leaving section', origin.index, 'to', destination.index);
 
       isTransitioning = true;
       const oldSectionIndex = origin.index;
@@ -903,7 +883,6 @@ function initFullPage() {
     },
 
     afterLoad: function (origin, destination, direction, trigger) {
-      console.log('Loaded section', destination.index);
 
       isTransitioning = false;
       currentSectionIndex = destination.index;
@@ -937,7 +916,6 @@ function initFullPage() {
     },
 
     afterRender: function () {
-      console.log('FullPage rendered');
 
       // Инициализируем первую секцию
       currentSectionIndex = 0;
@@ -952,7 +930,6 @@ function initFullPage() {
     },
 
     afterResize: function (width, height) {
-      console.log('FullPage resized', width, height);
     },
 
     afterSlideLoad: function () {
@@ -1080,22 +1057,6 @@ $videoBackward?.addEventListener('error', (e) => {
   console.error('Backward video error:', e);
 });
 
-// Обработчики для отслеживания состояния загрузки
-$video?.addEventListener('loadstart', () => {
-  console.log('Main video: loadstart');
-});
-
-$video?.addEventListener('loadeddata', () => {
-  console.log('Main video: loadeddata');
-});
-
-$videoBackward?.addEventListener('loadstart', () => {
-  console.log('Backward video: loadstart');
-});
-
-$videoBackward?.addEventListener('loadeddata', () => {
-  console.log('Backward video: loadeddata');
-});
 
 // Обработчики для загрузки видео
 document.addEventListener('click', loadVideo, { once: true });
@@ -1190,9 +1151,6 @@ window.addEventListener('load', () => {
 
     // Делаем функцию изменения скорости доступной глобально
     window.setScrollSpeed = setScrollSpeed;
-    console.log(
-      'Use setScrollSpeed(milliseconds) to change scroll and video speed',
-    );
   } catch (error) {
     console.error('Initialization error:', error);
   }
