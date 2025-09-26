@@ -105,6 +105,7 @@ body {
 
     &.animate-in {
         opacity: 1;
+        visibility: visible;
         transition: opacity 0.8s ease, transform 0.8s ease;
     }
 

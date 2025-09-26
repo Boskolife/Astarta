@@ -85,7 +85,7 @@ function loadVideoImmediately(video) {
     video.muted = true;
     // Принудительно загружаем видео
     video.load();
-    
+
     // Пытаемся запустить и сразу остановить для инициализации
     const p = video.play();
     if (p && p.then) {
@@ -147,7 +147,7 @@ function animateSectionBlocks(section) {
   const middleCol = section.querySelector('.middle_col');
   const paragraphs = Array.from(section.querySelectorAll('p'));
   const formWrap = section.querySelector('.form_wrap');
-  
+
   // Собираем все блоки в правильном порядке
   const contentBlocks = [];
   if (numberWrap) contentBlocks.push(numberWrap);
@@ -163,13 +163,12 @@ function animateSectionBlocks(section) {
     )}`,
   );
 
-
   // Добавляем базовый класс и сбрасываем состояние
   contentBlocks.forEach((block, index) => {
     block.classList.add('content-block');
     block.classList.remove('animate-in');
     block.classList.add('animate-out');
-    
+
     // Добавляем индекс для отладки
     block.setAttribute('data-animation-index', index);
   });
@@ -181,7 +180,7 @@ function animateSectionBlocks(section) {
       block.tagName,
       block.className,
     );
-    
+
     block.classList.remove('animate-out');
     block.classList.add('animate-in');
   });
@@ -193,18 +192,18 @@ function animateSectionBlocks(section) {
 // Функция для запуска анимации печати после появления всех блоков
 async function startTypingAnimation(section) {
   const grayTexts = section.querySelectorAll('.gray_text');
-  
+
   if (grayTexts.length === 0) return;
-  
+
   // Сбрасываем все анимации
   grayTexts.forEach((grayText) => {
     resetTypingAnimation(grayText);
   });
-  
+
   // Запускаем анимацию последовательно для каждого элемента
   for (let i = 0; i < grayTexts.length; i++) {
     const grayText = grayTexts[i];
-    
+
     // Ждем завершения анимации текущего элемента, затем сразу запускаем следующий
     await createTypingAnimation(grayText, TYPING_ANIMATION_DELAY);
   }
@@ -231,8 +230,8 @@ function createTypingAnimation(element, delay = 100) {
   // Если элемент ещё не подготовлен — оборачиваем символы в .char и включаем режим анимации
   if (!element.classList.contains('typing-initialized')) {
     const text = element.textContent || '';
-  element.innerHTML = '';
-  element.classList.add('typing-animation', 'typing-initialized');
+    element.innerHTML = '';
+    element.classList.add('typing-animation', 'typing-initialized');
 
     // Разбиваем текст на слова и пробелы
     const words = text.split(/(\s+)/);
@@ -278,7 +277,7 @@ function createTypingAnimation(element, delay = 100) {
     charElements.forEach((charEl, index) => {
       setTimeout(() => {
         charEl.classList.add('active');
-        
+
         // Если это последний символ, разрешаем Promise
         if (index === charElements.length - 1) {
           resolve();
@@ -351,7 +350,7 @@ function startVideoTransition(fromSectionIndex, toSectionIndex) {
   // Секция 0 соответствует VIDEO_SEGMENTS[2], секция 1 - VIDEO_SEGMENTS[4], и т.д.
   const fromVideoSegIndex = fromSectionIndex * 2 + 2;
   const toVideoSegIndex = toSectionIndex * 2 + 2;
-  
+
   // Ограничиваем индексы
   const fromIndex = Math.max(
     2, // Минимум - первый сегмент после интро
@@ -364,7 +363,7 @@ function startVideoTransition(fromSectionIndex, toSectionIndex) {
 
   const [fromT0, fromT1] = VIDEO_SEGMENTS[fromIndex];
   const [toT0, toT1] = VIDEO_SEGMENTS[toIndex];
-  
+
   // Воспроизводим участок видео без постоянных записей currentTime
   playVideoSegment(fromT0, toT0, scrollingSpeed);
 
@@ -431,8 +430,8 @@ function playVideoSegment(fromTime, toTime, durationMs, onComplete) {
             console.warn('Segment completion callback error:', e);
           }
         }
-    return;
-  }
+        return;
+      }
       segmentStopRafId = requestAnimationFrame(checkStopForward);
     };
 
@@ -447,21 +446,20 @@ function playVideoSegment(fromTime, toTime, durationMs, onComplete) {
   }
 }
 
-
 // Обратное проигрывание сегмента: подготавливаем обратное видео без мигания
 function playVideoSegmentReverse(fromTime, toTime, durationMs, onComplete) {
   if (!$video || !$videoBackward) return;
-  
+
   try {
     $video.pause();
     $videoBackward.pause();
   } catch {}
-  
+
   // Вычисляем время в обратном видео
   const videoDuration = $video.duration || 0;
   const backwardFromTime = videoDuration - fromTime;
   const backwardToTime = videoDuration - toTime;
-  
+
   // Подготавливаем обратное видео: устанавливаем время и ждем готовности
   const prepareAndShowBackward = () => {
     try {
@@ -469,20 +467,20 @@ function playVideoSegmentReverse(fromTime, toTime, durationMs, onComplete) {
     } catch (e) {
       console.warn('Failed to set backward video time:', e);
     }
-    
+
     // Ждем, пока видео будет готово к показу нужного кадра
     const showWhenReady = () => {
       // Переключаем видимость только когда обратное видео готово
       $video.classList.remove('is-visible');
       $videoBackward.classList.add('is-visible');
-      
+
       // Запускаем обратное видео
       const p = $videoBackward.play();
       if (p && p.then) {
         p.catch((e) => console.warn('Backward video play error:', e));
       }
     };
-    
+
     // Ждем готовности видео (seeked + canplay)
     const onSeeked = () => {
       $videoBackward.removeEventListener('seeked', onSeeked);
@@ -496,18 +494,18 @@ function playVideoSegmentReverse(fromTime, toTime, durationMs, onComplete) {
         $videoBackward.addEventListener('canplay', onCanPlay, { once: true });
       }
     };
-    
+
     $videoBackward.addEventListener('seeked', onSeeked, { once: true });
   };
-  
+
   prepareAndShowBackward();
-  
+
   // Через заданное время возвращаемся к основному видео
   setTimeout(() => {
     try {
       $videoBackward.pause();
     } catch {}
-    
+
     // Подготавливаем основное видео перед показом
     const prepareAndShowMain = () => {
       try {
@@ -515,11 +513,11 @@ function playVideoSegmentReverse(fromTime, toTime, durationMs, onComplete) {
       } catch (e) {
         console.warn('Failed to sync main video time:', e);
       }
-      
+
       const showMainWhenReady = () => {
         $videoBackward.classList.remove('is-visible');
         $video.classList.add('is-visible');
-        
+
         if (typeof onComplete === 'function') {
           try {
             onComplete();
@@ -528,7 +526,7 @@ function playVideoSegmentReverse(fromTime, toTime, durationMs, onComplete) {
           }
         }
       };
-      
+
       // Ждем готовности основного видео
       const onSeekedMain = () => {
         $video.removeEventListener('seeked', onSeekedMain);
@@ -542,10 +540,10 @@ function playVideoSegmentReverse(fromTime, toTime, durationMs, onComplete) {
           $video.addEventListener('canplay', onCanPlayMain, { once: true });
         }
       };
-      
+
       $video.addEventListener('seeked', onSeekedMain, { once: true });
     };
-    
+
     prepareAndShowMain();
   }, durationMs);
 }
@@ -656,7 +654,6 @@ function detachIntroVideoGuards() {
   }
 }
 
-
 // Показать интерфейс после интро
 function showUIAfterIntro() {
   // Показываем все UI элементы после интро
@@ -665,7 +662,7 @@ function showUIAfterIntro() {
     el.classList.remove('hidden');
     el.classList.add('visible');
   });
-  
+
   // Также показываем хедер отдельно, если он не имеет класса ui-element
   const header = document.querySelector('.header');
   if (header && !header.classList.contains('ui-element')) {
@@ -709,7 +706,6 @@ function startIntroFlow() {
   }
 }
 
-
 // Easing функция для плавных переходов (как в FullPage.js)
 function easeInOutCubic(t) {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -718,11 +714,11 @@ function easeInOutCubic(t) {
 // Функция для изменения скорости скролла и видео
 function setScrollSpeed(newSpeed) {
   scrollingSpeed = newSpeed;
-  
+
   if (fullPageInstance) {
     // Сбрасываем флаг инициализации при пересоздании FullPage
     isInitialAnimationStarted = false;
-    
+
     // Обновляем настройки FullPage.js
     fullPageInstance.destroy('all');
     initFullPage();
@@ -733,10 +729,10 @@ function setScrollSpeed(newSpeed) {
 // Функция для принудительного показа элементов формы без анимации
 function showFormElementsWithoutAnimation(section) {
   if (!section) return;
-  
+
   const formWrap = section.querySelector('.form_wrap');
   const paragraphs = section.querySelectorAll('p');
-  
+
   // Принудительно показываем все элементы формы
   if (formWrap) {
     formWrap.classList.add('animate-in');
@@ -744,7 +740,7 @@ function showFormElementsWithoutAnimation(section) {
     formWrap.style.opacity = '1';
     formWrap.style.visibility = 'visible';
   }
-  
+
   // Показываем все параграфы
   paragraphs.forEach((p) => {
     p.classList.add('animate-in');
@@ -752,15 +748,14 @@ function showFormElementsWithoutAnimation(section) {
     p.style.opacity = '1';
     p.style.visibility = 'visible';
   });
-  
 }
 
 // Функция для управления видимостью UI элементов
 function updateUIVisibility(sectionIndex, isInTransition = false) {
-    // Управляем видимостью sound_button_wrap
-    const soundButtonWrap = document.querySelector('.sound_button_wrap');
-    if (soundButtonWrap) {
-      const soundButtonText = soundButtonWrap.querySelector('p');
+  // Управляем видимостью sound_button_wrap
+  const soundButtonWrap = document.querySelector('.sound_button_wrap');
+  if (soundButtonWrap) {
+    const soundButtonText = soundButtonWrap.querySelector('p');
 
     if (sectionIndex === SEGMENTS.length - 2) {
       // В предпоследнем сегменте (форма) скрываем только текст
@@ -780,18 +775,18 @@ function updateUIVisibility(sectionIndex, isInTransition = false) {
       soundButtonWrap.classList.add('hidden');
     } else {
       // В других секциях показываем всё
-        if (soundButtonText) {
+      if (soundButtonText) {
         soundButtonText.classList.remove('hidden');
         soundButtonText.classList.add('visible');
       }
       soundButtonWrap.classList.remove('hidden');
       soundButtonWrap.classList.add('visible');
-      } 
     }
+  }
 
-    // Управляем видимостью arrow_down_wrap
-    const arrowDownWrap = document.querySelector('.arrow_down_wrap');
-    if (arrowDownWrap) {
+  // Управляем видимостью arrow_down_wrap
+  const arrowDownWrap = document.querySelector('.arrow_down_wrap');
+  if (arrowDownWrap) {
     if (
       sectionIndex === SEGMENTS.length - 2 ||
       sectionIndex === SEGMENTS.length - 1
@@ -799,7 +794,7 @@ function updateUIVisibility(sectionIndex, isInTransition = false) {
       // Скрываем стрелку в предпоследней секции (форма) и в последней (футер)
       arrowDownWrap.classList.remove('visible');
       arrowDownWrap.classList.add('hidden');
-      } else {
+    } else {
       arrowDownWrap.classList.remove('hidden');
       arrowDownWrap.classList.add('visible');
     }
@@ -814,7 +809,7 @@ function updateUIVisibility(sectionIndex, isInTransition = false) {
     } else {
       // Не в футере - убираем класс keep-visible
       formSection.classList.remove('keep-visible');
-      
+
       // Если мы переходим из футера в секцию с формой, устанавливаем флаг
       if (
         sectionIndex === SEGMENTS.length - 2 &&
@@ -830,7 +825,7 @@ function updateUIVisibility(sectionIndex, isInTransition = false) {
 function initFullPage() {
   // Синхронизируем переменную скорости с настройками FullPage.js
   scrollingSpeed = 3000;
-  
+
   fullPageInstance = new fullpage('#fullpage', {
     // Основные настройки
     licenseKey: 'gplv3-license', // Используем GPL лицензию
@@ -847,7 +842,7 @@ function initFullPage() {
     navigation: false,
     navigationPosition: 'right',
     showActiveTooltip: false,
-    
+
     // Настройки скроллинга
     scrollingSpeed: scrollingSpeed, // Синхронизированная скорость перехода между секциями
     autoScrolling: true,
@@ -888,12 +883,11 @@ function initFullPage() {
     // Callbacks
     onLeave: function (origin, destination, direction, trigger) {
       console.log('Leaving section', origin.index, 'to', destination.index);
-      
-      
+
       isTransitioning = true;
       const oldSectionIndex = origin.index;
       const newSectionIndex = destination.index;
-      
+
       // Сбрасываем анимации для покидаемой секции
       const oldSection = $sections[oldSectionIndex];
       if (oldSection) {
@@ -909,33 +903,32 @@ function initFullPage() {
 
       // Запускаем синхронизированный переход видео
       startVideoTransition(oldSectionIndex, newSectionIndex);
-      
+
       return true;
     },
 
     afterLoad: function (origin, destination, direction, trigger) {
       console.log('Loaded section', destination.index);
-      
+
       isTransitioning = false;
       currentSectionIndex = destination.index;
-      
+
       // Проверяем, возвращаемся ли мы из футера в секцию с формой
       const isReturningFromFooter =
         returningFromFooter && destination.index === SEGMENTS.length - 2;
-      
+
       // Сбрасываем флаг возврата из футера
       returningFromFooter = false;
-      
-      
+
       // Обновляем видимость UI элементов
       updateUIVisibility(currentSectionIndex, false);
-      
+
       // Для секции с формой принудительно показываем все элементы без анимации
       const newSection = $sections[currentSectionIndex];
       if (newSection && newSection.classList.contains('seventh-section')) {
         showFormElementsWithoutAnimation(newSection);
       }
-      
+
       // Запускаем анимацию для новой секции
       // Избегаем двойного запуска для первой секции при инициализации
       // И пропускаем анимацию при возврате из футера в секцию с формой
@@ -950,16 +943,16 @@ function initFullPage() {
 
     afterRender: function () {
       console.log('FullPage rendered');
-      
+
       // Инициализируем первую секцию
       currentSectionIndex = 0;
       updateUIVisibility(0, false);
-      
+
       // Запускаем анимацию первой секции только один раз
       const firstSection = $sections[0];
       if (firstSection && !isInitialAnimationStarted) {
         isInitialAnimationStarted = true;
-          animateSectionBlocks(firstSection);
+        animateSectionBlocks(firstSection);
       }
     },
 
@@ -1011,16 +1004,16 @@ function initSoundButtons() {
     // Изначально звук включен (muted = false)
     let isSoundOn = true;
     const soundWrap = button.closest('.sound_button_wrap');
-    
+
     // Инициализация начального состояния
     if (soundWrap) {
       soundWrap.classList.remove('sound-off');
     }
-    
+
     button.addEventListener('click', () => {
       isSoundOn = !isSoundOn;
       const span = button.querySelector('span');
-      
+
       if (span) {
         span.textContent = isSoundOn ? 'Sound On' : 'Sound Off';
       }
@@ -1067,9 +1060,7 @@ $video?.addEventListener('loadedmetadata', () => {
       $video.currentTime = startT;
     }
   } catch {}
-  
 });
-
 
 // Обработчик загрузки метаданных обратного видео
 $videoBackward?.addEventListener('loadedmetadata', () => {
@@ -1077,13 +1068,12 @@ $videoBackward?.addEventListener('loadedmetadata', () => {
   if ($video && $videoBackward) {
     const mainDuration = $video.duration || 0;
     const backwardDuration = $videoBackward.duration || 0;
-    
+
     // Проверяем, что длительности совпадают
     if (Math.abs(mainDuration - backwardDuration) > 0.1) {
       console.warn('Video durations mismatch:', mainDuration, backwardDuration);
     }
   }
-  
 });
 
 // Обработчики ошибок для видео
@@ -1122,10 +1112,8 @@ document.addEventListener('touchstart', loadVideo, {
 // Добавляем обработчик для кнопки в хедере
 document.addEventListener('click', handleHeaderButtonClick);
 
-
 // Функция очистки
 function cleanup() {
-
   if (fullPageInstance) {
     fullPageInstance.destroy('all');
     fullPageInstance = null;
@@ -1136,7 +1124,6 @@ function cleanup() {
 
 window.addEventListener('beforeunload', cleanup);
 
-
 // Функция для инициализации базовых CSS классов
 function initializeContentClasses() {
   // Добавляем базовые классы для всех контентных блоков
@@ -1146,13 +1133,13 @@ function initializeContentClasses() {
   allContentBlocks.forEach((block) => {
     block.classList.add('content-block', 'animate-out');
   });
-  
+
   // Добавляем базовые классы для UI элементов
   const soundButtonWrap = document.querySelector('.sound_button_wrap');
   const soundButtonText = soundButtonWrap?.querySelector('p');
   const arrowDownWrap = document.querySelector('.arrow_down_wrap');
   const header = document.querySelector('.header');
-  
+
   if (soundButtonWrap) soundButtonWrap.classList.add('ui-element');
   if (soundButtonText) soundButtonText.classList.add('ui-element');
   if (arrowDownWrap) arrowDownWrap.classList.add('ui-element');
@@ -1163,7 +1150,7 @@ function initializeContentClasses() {
 function initFonts() {
   // Добавляем класс загрузки шрифтов
   document.documentElement.classList.add('fonts-loading');
-  
+
   // Проверяем загрузку шрифтов
   if ('fonts' in document) {
     document.fonts.ready.then(() => {
@@ -1187,25 +1174,25 @@ window.addEventListener('load', () => {
     if ($videoBackward) {
       loadVideoImmediately($videoBackward);
     }
-    
+
     // Также устанавливаем обработчики для пользовательского взаимодействия
     primeVideoPlayback($video);
     if ($videoBackward) {
       primeVideoPlayback($videoBackward);
     }
-    
+
     // Инициализируем шрифты
     initFonts();
-    
+
     // Инициализируем CSS классы до запуска FullPage
     initializeContentClasses();
-    
+
     // Инициализируем кнопки звука
     initSoundButtons();
-    
+
     // Стартуем интро, а инициализацию FullPage выполним после его завершения
     startIntroFlow();
-    
+
     // Делаем функцию изменения скорости доступной глобально
     window.setScrollSpeed = setScrollSpeed;
     console.log(
