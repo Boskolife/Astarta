@@ -408,7 +408,6 @@
       @include adaptive-value("font-size", 22, 14, 1);
       line-height: calc(24 / 22);
       @include font-with-spacing(22px);
-      text-wrap: balance;
     }
   }
 }
