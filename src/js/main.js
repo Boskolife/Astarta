@@ -74,9 +74,41 @@ function primeVideoPlayback(video) {
   window.addEventListener('click', unlock, { once: true });
 }
 
+// Функция для немедленной загрузки видео без ожидания взаимодействия
+function loadVideoImmediately(video) {
+  if (!video) {
+    console.warn('Video element not found');
+    return;
+  }
+
+  try {
+    video.muted = true;
+    // Принудительно загружаем видео
+    video.load();
+    
+    // Пытаемся запустить и сразу остановить для инициализации
+    const p = video.play();
+    if (p && p.then) {
+      p.then(() => {
+        video.pause();
+        video.currentTime = 0;
+      }).catch((error) => {
+        console.warn('Video play error:', error);
+      });
+    } else {
+      video.play();
+      video.pause();
+      video.currentTime = 0;
+    }
+  } catch (error) {
+    console.warn('Video playback error:', error);
+  }
+}
+
 const $video = document.getElementById('video');
 const $videoBackward = document.getElementById('video-backward');
 const $sections = Array.from(document.querySelectorAll('.fp-section'));
+const $videoLoader = document.getElementById('video-loader');
 
 // Основные переменные
 let fullPageInstance = null;
@@ -982,6 +1014,9 @@ function loadVideo() {
   if ($video && $video.readyState < 2) {
     $video.load();
   }
+  if ($videoBackward && $videoBackward.readyState < 2) {
+    $videoBackward.load();
+  }
 }
 
 // Функция для скролла к секции с формой
@@ -1064,6 +1099,18 @@ $video?.addEventListener('loadedmetadata', () => {
       $video.currentTime = startT;
     }
   } catch {}
+  
+  // Проверяем готовность после загрузки метаданных
+  if (checkVideoReadiness()) {
+    hideLoader();
+  }
+});
+
+// Обработчик готовности видео для воспроизведения
+$video?.addEventListener('canplaythrough', () => {
+  if (checkVideoReadiness()) {
+    hideLoader();
+  }
 });
 
 // Обработчик загрузки метаданных обратного видео
@@ -1077,6 +1124,13 @@ $videoBackward?.addEventListener('loadedmetadata', () => {
     if (Math.abs(mainDuration - backwardDuration) > 0.1) {
       console.warn('Video durations mismatch:', mainDuration, backwardDuration);
     }
+  }
+});
+
+// Обработчик готовности обратного видео для воспроизведения
+$videoBackward?.addEventListener('canplaythrough', () => {
+  if (checkVideoReadiness()) {
+    hideLoader();
   }
 });
 
@@ -1103,6 +1157,30 @@ function cleanup() {
 }
 
 window.addEventListener('beforeunload', cleanup);
+
+// Функции для управления лоадером
+function showLoader() {
+  if ($videoLoader) {
+    $videoLoader.classList.remove('hidden');
+  }
+}
+
+function hideLoader() {
+  if ($videoLoader) {
+    $videoLoader.classList.add('hidden');
+  }
+}
+
+// Функция для проверки готовности обоих видео
+function checkVideoReadiness() {
+  // Основное видео должно быть готово к воспроизведению
+  const mainVideoReady = $video && $video.readyState >= 3; // HAVE_FUTURE_DATA
+  
+  // Обратное видео должно быть готово к воспроизведению
+  const backwardVideoReady = $videoBackward && $videoBackward.readyState >= 3; // HAVE_FUTURE_DATA
+  
+  return mainVideoReady && backwardVideoReady;
+}
 
 // Функция для инициализации базовых CSS классов
 function initializeContentClasses() {
@@ -1147,17 +1225,47 @@ function initFonts() {
 // Инициализация при загрузке страницы
 window.addEventListener('load', () => {
   try {
+    // Показываем лоадер
+    showLoader();
+    
     // Инициализируем шрифты
     initFonts();
     
     // Инициализируем CSS классы до запуска FullPage
     initializeContentClasses();
     
+    // Загружаем оба видео сразу без ожидания взаимодействия
+    loadVideoImmediately($video);
+    if ($videoBackward) {
+      loadVideoImmediately($videoBackward);
+    }
+    
+    // Также устанавливаем обработчики для пользовательского взаимодействия
     primeVideoPlayback($video);
     if ($videoBackward) {
       primeVideoPlayback($videoBackward);
     }
     initSoundButtons();
+    
+    // Проверяем, готовы ли оба видео уже сейчас
+    if (checkVideoReadiness()) {
+      hideLoader();
+    }
+    
+    // Периодическая проверка готовности видео
+    const checkInterval = setInterval(() => {
+      if (checkVideoReadiness()) {
+        hideLoader();
+        clearInterval(checkInterval);
+      }
+    }, 100);
+    
+    // Таймаут для принудительного скрытия лоадера через 10 секунд
+    setTimeout(() => {
+      hideLoader();
+      clearInterval(checkInterval);
+    }, 10000);
+    
     // Стартуем интро, а инициализацию FullPage выполним после его завершения
     startIntroFlow();
     
@@ -1168,5 +1276,7 @@ window.addEventListener('load', () => {
     );
   } catch (error) {
     console.error('Initialization error:', error);
+    // В случае ошибки скрываем лоадер
+    hideLoader();
   }
 });
