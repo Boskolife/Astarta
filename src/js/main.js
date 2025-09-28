@@ -9,9 +9,10 @@ const CONFIG = {
     STABILITY_DELAY: 20
   },
   VIDEO_SYNC: {
-    INTERVAL: 100,
+    INTERVAL: 200, // Увеличено для мобильных устройств
     EPSILON: 1 / 120,
-    MIN_DURATION: 0.2
+    MIN_DURATION: 0.2,
+    MOBILE_INTERVAL: 500 // Еще реже на мобильных
   },
   ANIMATION: {
     TYPING_DELAY: 50,
@@ -153,6 +154,22 @@ let isQuickJumpToForm = false;
 
 // Хранилище для event listeners для последующей очистки
 const eventListeners = new Map();
+
+// Определяем мобильное устройство для оптимизации
+const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                 window.innerWidth <= 768;
+
+// Определяем слабое устройство (старые мобильные)
+const isLowEndDevice = isMobile && (navigator.hardwareConcurrency <= 2 || 
+                     /Android [1-4]|iPhone OS [1-9]|iPad.*OS [1-9]/.test(navigator.userAgent));
+
+// Логируем информацию об устройстве для отладки
+console.log('Device info:', {
+  isMobile,
+  isLowEndDevice,
+  hardwareConcurrency: navigator.hardwareConcurrency,
+  userAgent: navigator.userAgent.substring(0, 50) + '...'
+});
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
@@ -431,8 +448,15 @@ function playVideoSegment(fromTime, toTime, durationMs, onComplete) {
       const elapsed = now - startPerf;
       const progress = Math.min(elapsed / durationMs, 1);
 
-      // Синхронизируем время только в ключевые моменты
-      if (Math.floor(elapsed / CONFIG.VIDEO_SYNC.INTERVAL) !== Math.floor((elapsed - 16) / CONFIG.VIDEO_SYNC.INTERVAL)) {
+      // Синхронизируем время только в ключевые моменты (реже на мобильных и слабых устройствах)
+      let syncInterval = CONFIG.VIDEO_SYNC.INTERVAL;
+      if (isLowEndDevice) {
+        syncInterval = 1000; // Очень редко на слабых устройствах
+      } else if (isMobile) {
+        syncInterval = CONFIG.VIDEO_SYNC.MOBILE_INTERVAL;
+      }
+      
+      if (Math.floor(elapsed / syncInterval) !== Math.floor((elapsed - 16) / syncInterval)) {
         const expectedTime = fromTime + (toTime - fromTime) * progress;
         try {
           $video.currentTime = expectedTime;
