@@ -34,9 +34,9 @@
 
 <body>
   <div class="video-stack" role="presentation" aria-hidden="true">
-    <video id="video" class="video is-visible" playsinline muted preload="auto" poster=""
+    <video id="video" class="video is-visible" playsinline preload="auto" poster=""
       disablePictureInPicture disableRemotePlayback aria-label="Astarta Capital presentation video">
-      <source src="./video/output-zipped.mp4" media="(min-width: 479px)" type="video/mp4">
+      <source src="./video/output.mp4" media="(min-width: 479px)" type="video/mp4">
       <source src="./video/output_mob.mp4" media="(max-width: 480px)" type="video/mp4">
     </video>
     <video id="video-backward" class="video video-backward" playsinline muted preload="auto"
@@ -46,9 +46,22 @@
       <source src="./video/backward_mob.mp4" media="(max-width: 480px)" type="video/mp4">
     </video>
   </div>
+  <div class="audio-stack" role="presentation" aria-hidden="true">
+    <audio id="audio-main" class="audio-main" playsinline preload="auto" loop aria-label="Astarta Capital presentation audio">
+      <source src="./audio/ASTARTA_Background.wav" type="audio/wav">
+    </audio>
+    <audio id="audio-drums" class="audio-drums" playsinline preload="auto" loop aria-label="Astarta Capital presentation audio">
+      <source src="./audio/ASTARTA_Drums.wav" type="audio/wav">
+    </audio>
+  </div>
   <div class="content_wrap">
     {{> sound-button }}
     {{> arrow-down }}
+  </div>
+  
+  <!-- Уведомление о необходимости клика для звука -->
+  <div id="audio-notification" class="audio-notification hidden">
+    <p>Click anywhere to enable sound</p>
   </div>
   {{> header }}
   <main id="fullpage" class="hidden">
@@ -199,9 +212,9 @@
         </div>
       </div>
     </div>
-    <div class="section fp-section footer-section" data-seg="7">
+    <!-- <div class="section fp-section footer-section" data-seg="7">
       {{>footer}}
-    </div>
+    </div> -->
   </main>
 </body>
 

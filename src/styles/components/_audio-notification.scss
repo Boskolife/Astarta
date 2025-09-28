@@ -1,0 +1,83 @@
+.audio-notification {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.7);
+  border-radius: 6px;
+  padding: 8px 16px;
+  max-width: 280px;
+  width: auto;
+  transition: all 0.3s ease;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  &.visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(-50%);
+  }
+
+  &.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(10px);
+  }
+
+  p {
+    margin: 0 !important;
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-size: 12px !important;
+    font-weight: 400 !important;
+    line-height: 1.3 !important;
+    text-align: center !important;
+    white-space: nowrap !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+  }
+
+  // Переопределяем классы animate и hide для уведомления
+  &.animate,
+  &.hide {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateX(-50%) !important;
+  }
+
+  p.animate,
+  p.hide {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+  }
+}
+
+// Адаптивность
+@include media('<=tablet') {
+  .audio-notification {
+    bottom: 20px;
+    padding: 6px 12px;
+    max-width: 240px;
+    
+    p {
+      font-size: 11px;
+    }
+  }
+}
+
+@include media('<=phone') {
+  .audio-notification {
+    bottom: 15px;
+    padding: 5px 10px;
+    max-width: 200px;
+    
+    p {
+      font-size: 10px;
+    }
+  }
+}

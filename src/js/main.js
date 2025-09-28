@@ -106,6 +106,9 @@ function loadVideoImmediately(video) {
 
 const $video = document.getElementById('video');
 const $videoBackward = document.getElementById('video-backward');
+const $audioMain = document.getElementById('audio-main');
+const $audioDrums = document.getElementById('audio-drums');
+const $audioNotification = document.getElementById('audio-notification');
 const $sections = Array.from(document.querySelectorAll('.fp-section'));
 
 // Основные переменные
@@ -119,6 +122,9 @@ let isIntroPlayed = false;
 let introClickHandler = null;
 let introPointerHandler = null;
 let introPauseHandler = null;
+let isAudioInitialized = false;
+let pendingAudioStart = false;
+let drumsStartTimer = null;
 
 // Флаг для предотвращения двойной инициализации анимации
 let isInitialAnimationStarted = false;
@@ -870,6 +876,27 @@ function initFullPage() {
         });
       }
 
+      // Управление аудио при переходе между секциями
+      if (newSectionIndex === 1) {
+        // Переходим во вторую секцию - запускаем барабаны за 2 секунды до появления
+        // Очищаем предыдущий таймер, если есть
+        if (drumsStartTimer) {
+          clearTimeout(drumsStartTimer);
+        }
+        drumsStartTimer = setTimeout(() => {
+          startDrumsAudio();
+          drumsStartTimer = null;
+        }, 2000);
+      } else if (newSectionIndex === 0) {
+        // Переходим обратно в первую секцию - останавливаем барабаны и отменяем таймер
+        if (drumsStartTimer) {
+          clearTimeout(drumsStartTimer);
+          drumsStartTimer = null;
+        }
+        stopDrumsAudio();
+      }
+      // Для всех остальных секций (2, 3, 4, 5, 6) барабаны продолжают играть
+
       // Подгоняем длительность скролла под длительность видео между секциями
       updateScrollDurationForTransition(oldSectionIndex, newSectionIndex);
 
@@ -949,6 +976,122 @@ function loadVideo() {
   }
 }
 
+// Функция для управления аудио
+function initAudio() {
+  if (!$audioMain || !$audioDrums) {
+    console.warn('Audio elements not found');
+    return;
+  }
+
+  // Настраиваем аудио элементы
+  $audioMain.loop = true;
+  $audioDrums.loop = true;
+  
+  // Сбрасываем аудио в начало при перезагрузке
+  $audioMain.currentTime = 0;
+  $audioDrums.currentTime = 0;
+  
+  // Помечаем, что аудио готово к запуску
+  isAudioInitialized = true;
+  pendingAudioStart = true;
+  
+  // Пытаемся запустить основной аудио, но не критично если не получится
+  tryStartMainAudio();
+}
+
+// Функция для попытки запуска основного аудио (без ошибок)
+function tryStartMainAudio() {
+  if (!$audioMain || !isAudioInitialized) return;
+  
+  try {
+    // Сбрасываем основное аудио в начало перед запуском
+    $audioMain.currentTime = 0;
+    $audioMain.muted = false;
+    const playPromise = $audioMain.play();
+    if (playPromise && playPromise.then) {
+      playPromise.catch((error) => {
+        // Тихо игнорируем ошибки автовоспроизведения
+        console.log('Main audio autoplay blocked, will start after user interaction');
+        $audioMain.muted = true;
+        $audioMain.play().catch(() => {
+          // Тихо игнорируем и эту ошибку
+        });
+        
+        // Показываем уведомление пользователю
+        setTimeout(() => {
+          showAudioNotification();
+        }, 1000); // Небольшая задержка, чтобы уведомление не мешало загрузке
+      });
+    }
+  } catch (error) {
+    // Тихо игнорируем ошибки
+    // Показываем уведомление пользователю
+    setTimeout(() => {
+      showAudioNotification();
+    }, 1000);
+  }
+}
+
+// Функция для запуска основного аудио (принудительно)
+function startMainAudio() {
+  if (!$audioMain) return;
+  
+  try {
+    // Сбрасываем основное аудио в начало перед запуском
+    $audioMain.currentTime = 0;
+    $audioMain.muted = false;
+    const playPromise = $audioMain.play();
+    if (playPromise && playPromise.then) {
+      playPromise.catch((error) => {
+        console.warn('Main audio play error:', error);
+        // Если автовоспроизведение заблокировано, попробуем с muted
+        $audioMain.muted = true;
+        $audioMain.play().catch(() => {
+          console.warn('Main audio play failed even with muted');
+        });
+      });
+    }
+  } catch (error) {
+    console.warn('Main audio initialization error:', error);
+  }
+}
+
+// Функция для запуска барабанов
+function startDrumsAudio() {
+  if (!$audioDrums) return;
+  
+  try {
+    // Сбрасываем барабаны в начало перед запуском
+    $audioDrums.currentTime = 0;
+    $audioDrums.muted = false;
+    const playPromise = $audioDrums.play();
+    if (playPromise && playPromise.then) {
+      playPromise.catch((error) => {
+        console.warn('Drums audio play error:', error);
+        // Если автовоспроизведение заблокировано, попробуем с muted
+        $audioDrums.muted = true;
+        $audioDrums.play().catch(() => {
+          console.warn('Drums audio play failed even with muted');
+        });
+      });
+    }
+  } catch (error) {
+    console.warn('Drums audio initialization error:', error);
+  }
+}
+
+// Функция для остановки барабанов
+function stopDrumsAudio() {
+  if (!$audioDrums) return;
+  
+  try {
+    $audioDrums.pause();
+    $audioDrums.currentTime = 0;
+  } catch (error) {
+    console.warn('Drums audio stop error:', error);
+  }
+}
+
 // Функция для скролла к секции с формой
 function scrollToForm() {
   if (fullPageInstance) {
@@ -980,6 +1123,9 @@ function initSoundButtons() {
     }
 
     button.addEventListener('click', () => {
+      // При первом клике на кнопку звука запускаем аудио
+      startAudioAfterInteraction();
+      
       isSoundOn = !isSoundOn;
       const span = button.querySelector('span');
 
@@ -996,11 +1142,20 @@ function initSoundButtons() {
         }
       }
 
+      // Управление видео
       if ($video) {
         $video.muted = !isSoundOn;
       }
       if ($videoBackward) {
         $videoBackward.muted = !isSoundOn;
+      }
+
+      // Управление аудио
+      if ($audioMain) {
+        $audioMain.muted = !isSoundOn;
+      }
+      if ($audioDrums) {
+        $audioDrums.muted = !isSoundOn;
       }
     });
   });
@@ -1055,11 +1210,62 @@ $videoBackward?.addEventListener('error', (e) => {
 });
 
 
-// Обработчики для загрузки видео
-document.addEventListener('click', loadVideo, { once: true });
-document.addEventListener('touchstart', loadVideo, {
+// Функция для показа уведомления о звуке
+function showAudioNotification() {
+  if (!$audioNotification || !pendingAudioStart) return;
+  
+  $audioNotification.classList.remove('hidden');
+  $audioNotification.classList.add('visible');
+}
+
+// Функция для скрытия уведомления о звуке
+function hideAudioNotification() {
+  if (!$audioNotification) return;
+  
+  $audioNotification.classList.remove('visible');
+  $audioNotification.classList.add('hidden');
+}
+
+// Функция для запуска аудио после пользовательского взаимодействия
+function startAudioAfterInteraction() {
+  if (!isAudioInitialized || !pendingAudioStart) return;
+  
+  pendingAudioStart = false;
+  
+  // Скрываем уведомление
+  hideAudioNotification();
+  
+  // Запускаем основной аудио
+  if ($audioMain) {
+    try {
+      $audioMain.muted = false;
+      $audioMain.play().catch((error) => {
+        console.warn('Failed to start main audio after interaction:', error);
+      });
+    } catch (error) {
+      console.warn('Error starting main audio after interaction:', error);
+    }
+  }
+}
+
+// Обработчики для загрузки видео и запуска аудио
+document.addEventListener('click', () => {
+  loadVideo();
+  startAudioAfterInteraction();
+}, { once: true });
+
+document.addEventListener('touchstart', () => {
+  loadVideo();
+  startAudioAfterInteraction();
+}, {
   once: true,
   passive: true,
+});
+
+// Обработчик клика на уведомление
+$audioNotification?.addEventListener('click', (e) => {
+  e.stopPropagation();
+  startAudioAfterInteraction();
 });
 
 // Добавляем обработчик для кнопки в хедере
@@ -1070,6 +1276,22 @@ function cleanup() {
   if (fullPageInstance) {
     fullPageInstance.destroy('all');
     fullPageInstance = null;
+  }
+
+  // Очищаем таймер барабанов
+  if (drumsStartTimer) {
+    clearTimeout(drumsStartTimer);
+    drumsStartTimer = null;
+  }
+
+  // Останавливаем и сбрасываем все аудио
+  if ($audioMain) {
+    $audioMain.pause();
+    $audioMain.currentTime = 0;
+  }
+  if ($audioDrums) {
+    $audioDrums.pause();
+    $audioDrums.currentTime = 0;
   }
 
   document.removeEventListener('click', handleHeaderButtonClick);
@@ -1084,7 +1306,10 @@ function initializeContentClasses() {
     'p, .form_wrap, .number_wrap, .middle_col',
   );
   allContentBlocks.forEach((block) => {
-    block.classList.add('animate', 'hide');
+    // Исключаем уведомление о звуке
+    if (!block.closest('.audio-notification')) {
+      block.classList.add('animate', 'hide');
+    }
   });
 
   // Добавляем базовые классы для UI элементов
@@ -1134,6 +1359,9 @@ window.addEventListener('load', () => {
       primeVideoPlayback($videoBackward);
     }
 
+    // Инициализируем аудио
+    initAudio();
+
     // Инициализируем шрифты
     initFonts();
 
@@ -1148,6 +1376,15 @@ window.addEventListener('load', () => {
 
     // Делаем функцию изменения скорости доступной глобально
     window.setScrollSpeed = setScrollSpeed;
+    
+    // Временная функция для тестирования уведомления
+    window.testNotification = () => {
+      if ($audioNotification) {
+        $audioNotification.classList.remove('hidden');
+        $audioNotification.classList.add('visible');
+        console.log('Test notification shown');
+      }
+    };
   } catch (error) {
     console.error('Initialization error:', error);
   }
