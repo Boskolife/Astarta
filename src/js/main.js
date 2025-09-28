@@ -4,9 +4,7 @@ import fullpage from 'fullpage.js';
 const CONFIG = {
   SCROLLING_SPEED: {
     DEFAULT: 30000,
-    QUICK_JUMP: 1500,
-    RESTORE_DELAY: 200,
-    STABILITY_DELAY: 20
+    QUICK_JUMP: 1500
   },
   VIDEO_SYNC: {
     EPSILON: 1 / 120,
@@ -1402,49 +1400,31 @@ function quickJumpToForm() {
     }
   }
 
-  // Плавно скрываем текущую секцию перед переходом
-  const currentSectionElement = $sections[currentSectionIndex];
-  if (currentSectionElement) {
-    currentSectionElement.style.transition = 'opacity 0.2s ease-out';
-    currentSectionElement.style.opacity = '0.7';
-  }
+  // Мгновенно переходим к секции с формой
+  try {
+    fullPageInstance.moveTo(formSectionIndex + 1, 0); // +1 потому что FullPage считает с 1
 
-  // Сразу подготавливаем секцию формы для плавного появления
-  const formSection = $sections[formSectionIndex];
-  if (formSection) {
-    formSection.style.opacity = '0';
-    formSection.style.visibility = 'visible';
-    formSection.style.transition = 'opacity 0.3s ease-in-out';
-  }
-
-  // Переходим к секции с формой с минимальной задержкой
-  setTimeout(() => {
-    try {
-      fullPageInstance.moveTo(formSectionIndex + 1, 0); // +1 потому что FullPage считает с 1
-
-      // Сразу показываем секцию формы после перехода
-      setTimeout(() => {
-        if (formSection) {
-          formSection.style.opacity = '1';
-        }
-
-        // Восстанавливаем оригинальные настройки после перехода
-        setTimeout(() => {
-          scrollingSpeed = originalScrollingSpeed;
-          if (fullPageInstance && fullPageInstance.setScrollingSpeed) {
-            fullPageInstance.setScrollingSpeed(originalScrollingSpeed);
-          }
-
-          // Сбрасываем флаг быстрого перехода
-          isQuickJumpToForm = false;
-        }, 200); // Еще более быстрая задержка
-      }, 10); // Минимальная задержка для появления
-    } catch (error) {
-      console.warn('Quick jump to form failed:', error);
-      isTransitioning = false;
-      isQuickJumpToForm = false;
+    // Мгновенно показываем секцию формы
+    const formSection = $sections[formSectionIndex];
+    if (formSection) {
+      formSection.style.opacity = '1';
+      formSection.style.visibility = 'visible';
+      formSection.style.transition = ''; // Убираем анимацию для мгновенного появления
     }
-  }, 20); // Очень маленькая задержка для стабильности
+
+    // Восстанавливаем оригинальные настройки сразу
+    scrollingSpeed = originalScrollingSpeed;
+    if (fullPageInstance && fullPageInstance.setScrollingSpeed) {
+      fullPageInstance.setScrollingSpeed(originalScrollingSpeed);
+    }
+
+    // Сбрасываем флаг быстрого перехода
+    isQuickJumpToForm = false;
+  } catch (error) {
+    console.warn('Quick jump to form failed:', error);
+    isTransitioning = false;
+    isQuickJumpToForm = false;
+  }
 }
 
 // Функция для инициализации базовых CSS классов
