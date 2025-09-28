@@ -3,29 +3,12 @@
   height: 100%;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
+  transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
   padding: max(11vh, 70px) 0;
 
   @include media ("<tablet") {
     padding-top: 80px;
     padding-bottom: 70px;
-  }
-
-  &.animate {
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.8s ease, visibility 0.8s ease;
-
-    &.show {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    &.hide {
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.4s ease, visibility 0.4s ease;
-    }
   }
 
   &.footer-section {
@@ -37,7 +20,7 @@
     z-index: 10;
     opacity: 1;
     visibility: visible;
-    transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
+    transition: opacity 0.6s ease-in-out, visibility 0.6s ease-in-out;
   }
 
   &.first-section {
@@ -349,9 +332,6 @@
   }
 
   &.seventh-section {
-    opacity: 1 !important;
-    visibility: visible !important;
-    transition: none !important;
 
     .content {
       display: flex;
@@ -369,22 +349,6 @@
       margin: 0 auto;
     }
 
-    &.keep-visible {
-      z-index: 9;
-      opacity: 1;
-      visibility: visible;
-
-      .form_wrap {
-        opacity: 1 !important;
-        visibility: visible !important;
-        pointer-events: auto;
-      }
-
-      p {
-        opacity: 1 !important;
-        visibility: visible !important;
-      }
-    }
 
     h2 {
       font-size: 24px;

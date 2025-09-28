@@ -5,8 +5,8 @@ const CONFIG = {
   SCROLLING_SPEED: {
     DEFAULT: 30000,
     QUICK_JUMP: 1500,
-    RESTORE_DELAY: 1600,
-    STABILITY_DELAY: 50
+    RESTORE_DELAY: 200,
+    STABILITY_DELAY: 20
   },
   VIDEO_SYNC: {
     INTERVAL: 100,
@@ -163,9 +163,9 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 function animateSectionBlocks(section) {
   if (!section) return;
 
-  if (section.classList.contains('seventh-section')) {
-    return;
-  }
+  // if (section.classList.contains('seventh-section')) {
+  //   return;
+  // }
   const numberWrap = section.querySelector('.number_wrap');
   const middleCol = section.querySelector('.middle_col');
   const paragraphs = Array.from(section.querySelectorAll('p'));
@@ -749,28 +749,28 @@ function startIntroFlow() {
 }
 
 // Функция для принудительного показа элементов формы без анимации
-function showFormElementsWithoutAnimation(section) {
-  if (!section) return;
+// function showFormElementsWithoutAnimation(section) {
+//   if (!section) return;
 
-  const formWrap = section.querySelector('.form_wrap');
-  const paragraphs = section.querySelectorAll('p');
+//   const formWrap = section.querySelector('.form_wrap');
+//   const paragraphs = section.querySelectorAll('p');
 
-  // Принудительно показываем все элементы формы
-  if (formWrap) {
-    formWrap.classList.add('show');
-    formWrap.classList.remove('hide', 'animate');
-    formWrap.style.opacity = '1';
-    formWrap.style.visibility = 'visible';
-  }
+//   // Принудительно показываем все элементы формы
+//   if (formWrap) {
+//     formWrap.classList.add('show');
+//     formWrap.classList.remove('hide', 'animate');
+//     formWrap.style.opacity = '1';
+//     formWrap.style.visibility = 'visible';
+//   }
 
-  // Показываем все параграфы
-  paragraphs.forEach((p) => {
-    p.classList.add('show');
-    p.classList.remove('hide', 'animate');
-    p.style.opacity = '1';
-    p.style.visibility = 'visible';
-  });
-}
+//   // Показываем все параграфы
+//   paragraphs.forEach((p) => {
+//     p.classList.add('show');
+//     p.classList.remove('hide', 'animate');
+//     p.style.opacity = '1';
+//     p.style.visibility = 'visible';
+//   });
+// }
 
 // Функция для управления видимостью UI элементов
 function updateUIVisibility(sectionIndex, isInTransition = false) {
@@ -949,9 +949,9 @@ function initFullPage() {
 
       // Для секции с формой принудительно показываем все элементы без анимации
       const newSection = $sections[currentSectionIndex];
-      if (newSection && newSection.classList.contains('seventh-section')) {
-        showFormElementsWithoutAnimation(newSection);
-      }
+      // if (newSection && newSection.classList.contains('seventh-section')) {
+      //   showFormElementsWithoutAnimation(newSection);
+      // }
 
       // Запускаем анимацию для новой секции
       // Избегаем двойного запуска для первой секции при инициализации
@@ -1380,82 +1380,69 @@ function quickJumpToForm() {
     fullPageInstance.setScrollingSpeed(CONFIG.SCROLLING_SPEED.QUICK_JUMP);
   }
 
-  // Запускаем быстрое воспроизведение видео для перехода к форме
+  // Устанавливаем видео в нужное время для секции формы без воспроизведения
   if ($video && $video.readyState >= 2) {
     try {
-      // Получаем время начала и конца для перехода к форме
-      const fromT = getSectionVideoAnchorTime(currentSectionIndex);
-      const toT = getSectionVideoAnchorTime(formSectionIndex);
-
-      console.log(
-        'Quick jump video transition:',
-        'from',
-        fromT,
-        'to',
-        toT,
-        'duration',
-        CONFIG.SCROLLING_SPEED.QUICK_JUMP,
-        'current video time:',
-        $video.currentTime,
-        'video duration:',
-        $video.duration,
-      );
-
-      // Воспроизводим видео с ускорением для быстрого перехода
-      // Синхронизируем время видео с временем FullPage
-      playVideoSegment(fromT, toT, CONFIG.SCROLLING_SPEED.QUICK_JUMP, () => {
-        console.log(
-          'Video transition completed, final time:',
-          $video.currentTime,
-          'target was:',
-          toT,
-        );
-        // Убеждаемся, что видео остановилось в нужном месте
-        if ($video && Math.abs($video.currentTime - toT) > 0.1) {
-          console.log(
-            'Correcting video time from',
-            $video.currentTime,
-            'to',
-            toT,
-          );
-          $video.currentTime = toT;
-        }
-      });
+      const formVideoTime = getSectionVideoAnchorTime(formSectionIndex);
+      $video.currentTime = formVideoTime;
+      $video.pause();
+      
+      // Также устанавливаем обратное видео
+      if ($videoBackward) {
+        const videoDuration = $video.duration || 0;
+        $videoBackward.currentTime = videoDuration - formVideoTime;
+        $videoBackward.pause();
+      }
+      
+      console.log('Video set to form section time:', formVideoTime);
     } catch (error) {
-      console.warn('Failed to play video for form transition:', error);
+      console.warn('Failed to set video time for form section:', error);
     }
   }
 
-  // Переходим к секции с формой с задержкой для стабильности
+  // Плавно скрываем текущую секцию перед переходом
+  const currentSectionElement = $sections[currentSectionIndex];
+  if (currentSectionElement) {
+    currentSectionElement.style.transition = 'opacity 0.2s ease-out';
+    currentSectionElement.style.opacity = '0.7';
+  }
+
+  // Сразу подготавливаем секцию формы для плавного появления
+  const formSection = $sections[formSectionIndex];
+  if (formSection) {
+    formSection.style.opacity = '0';
+    formSection.style.visibility = 'visible';
+    formSection.style.transition = 'opacity 0.3s ease-in-out';
+  }
+
+  // Переходим к секции с формой с минимальной задержкой
   setTimeout(() => {
     try {
       fullPageInstance.moveTo(formSectionIndex + 1, 0); // +1 потому что FullPage считает с 1
 
-      // Восстанавливаем оригинальные настройки после перехода
+      // Сразу показываем секцию формы после перехода
       setTimeout(() => {
-        scrollingSpeed = originalScrollingSpeed;
-        if (fullPageInstance && fullPageInstance.setScrollingSpeed) {
-          fullPageInstance.setScrollingSpeed(originalScrollingSpeed);
+        if (formSection) {
+          formSection.style.opacity = '1';
         }
 
-        // Финальная проверка видео - убеждаемся, что оно в правильном месте
-        if ($video && $video.readyState >= 2) {
-          const expectedTime = getSectionVideoAnchorTime(formSectionIndex);
-          if (Math.abs($video.currentTime - expectedTime) > 0.1) {
-            console.log('Correcting video time to:', expectedTime);
-            $video.currentTime = expectedTime;
+        // Восстанавливаем оригинальные настройки после перехода
+        setTimeout(() => {
+          scrollingSpeed = originalScrollingSpeed;
+          if (fullPageInstance && fullPageInstance.setScrollingSpeed) {
+            fullPageInstance.setScrollingSpeed(originalScrollingSpeed);
           }
-        }
 
-        // Сбрасываем флаг быстрого перехода
-        isQuickJumpToForm = false;
-      }, CONFIG.SCROLLING_SPEED.RESTORE_DELAY); // Время для завершения видео и перехода
+          // Сбрасываем флаг быстрого перехода
+          isQuickJumpToForm = false;
+        }, 200); // Еще более быстрая задержка
+      }, 10); // Минимальная задержка для появления
     } catch (error) {
       console.warn('Quick jump to form failed:', error);
       isTransitioning = false;
       isQuickJumpToForm = false;
     }
-  }, CONFIG.SCROLLING_SPEED.STABILITY_DELAY); // Небольшая задержка для стабильности
+  }, 20); // Очень маленькая задержка для стабильности
 }
 
 // Функция для инициализации базовых CSS классов
