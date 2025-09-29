@@ -34,7 +34,7 @@
 
 <body>
   <div class="video-stack" role="presentation" aria-hidden="true">
-    <video id="video" class="video is-visible" playsinline preload="auto" poster=""
+    <video id="video" class="video is-visible" playsinline muted preload="auto" poster=""
       disablePictureInPicture disableRemotePlayback aria-label="Astarta Capital presentation video">
       <source src="./video/output.mp4" media="(min-width: 479px)" type="video/mp4">
       <source src="./video/output_mob.mp4" media="(max-width: 480px)" type="video/mp4">
@@ -47,10 +47,10 @@
     </video>
   </div>
   <div class="audio-stack" role="presentation" aria-hidden="true">
-    <audio id="audio-main" class="audio-main" playsinline preload="auto" loop aria-label="Astarta Capital presentation audio">
+    <audio id="audio-main" class="audio-main" playsinline muted preload="auto" loop aria-label="Astarta Capital presentation audio">
       <source src="./audio/ASTARTA_Background.wav" type="audio/wav">
     </audio>
-    <audio id="audio-drums" class="audio-drums" playsinline preload="auto" loop aria-label="Astarta Capital presentation audio">
+    <audio id="audio-drums" class="audio-drums" playsinline muted preload="auto" loop aria-label="Astarta Capital presentation audio">
       <source src="./audio/ASTARTA_Drums.wav" type="audio/wav">
     </audio>
   </div>
@@ -59,10 +59,6 @@
     {{> arrow-down }}
   </div>
   
-  <!-- Уведомление о необходимости клика для звука -->
-  <div id="audio-notification" class="audio-notification hidden">
-    <p>Click anywhere to enable sound</p>
-  </div>
   {{> header }}
   <main id="fullpage" class="hidden">
     <div class="section fp-section first-section" data-seg="0">
@@ -186,7 +182,7 @@
         </div>
       </div>
     </div>
-    <div class="section fp-section seventh-section" id="form" data-seg="6">
+    <!-- <div class="section fp-section seventh-section" id="form" data-seg="6">
       <div class="container">
         <div class="content">
           <div class="form_wrap">
@@ -211,11 +207,12 @@
           </div>
         </div>
       </div>
-    </div>
+    </div> -->
     <!-- <div class="section fp-section footer-section" data-seg="7">
       {{>footer}}
     </div> -->
   </main>
+  {{> form }}
 </body>
 
 </html>
