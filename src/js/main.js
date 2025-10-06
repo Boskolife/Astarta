@@ -896,6 +896,15 @@ function initAudio() {
   $audioMain.loop = true;
   $audioDrums.loop = true;
 
+  // Устанавливаем пониженную громкость аудио по умолчанию
+  // Значение в диапазоне 0.0 - 1.0 (где 1.0 = 100%)
+  try {
+    $audioMain.volume = 0.2;
+  } catch {}
+  try {
+    $audioDrums.volume = 0.2;
+  } catch {}
+
   // Сбрасываем аудио в начало при перезагрузке
   $audioMain.currentTime = 0;
   $audioDrums.currentTime = 0;
@@ -950,18 +959,6 @@ function startDrumsAudio() {
     console.warn('Drums audio initialization error:', error);
   }
 }
-
-// Функция для остановки барабанов
-// function stopDrumsAudio() {
-//   if (!$audioDrums) return;
-
-//   try {
-//     $audioDrums.pause();
-//     $audioDrums.currentTime = 0;
-//   } catch (error) {
-//     console.warn('Drums audio stop error:', error);
-//   }
-// }
 
 // Инициализация кнопок звука
 function initSoundButtons() {
