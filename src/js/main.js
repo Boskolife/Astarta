@@ -140,6 +140,24 @@ let isQuickJumpToForm = false;
 
 const eventListeners = new Map();
 
+// Определение платформы/браузера для специальных правил звука видео
+function isIOSDevice() {
+  const ua = navigator.userAgent || navigator.vendor || window.opera;
+  const isiOS = /iPad|iPhone|iPod/i.test(ua);
+  const isIPadOS = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+  return isiOS || isIPadOS;
+}
+
+function isSafariDesktop() {
+  const ua = navigator.userAgent || '';
+  const isSafari = /Safari/i.test(ua) && !/Chrome|Chromium|Edg|OPR/i.test(ua);
+  return isSafari && !isIOSDevice();
+}
+
+function shouldForceMuteVideo() {
+  return isIOSDevice() || isSafariDesktop();
+}
+
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
 /**
@@ -915,7 +933,11 @@ function initAudio() {
 
   // Видео элементы тоже muted по умолчанию
   if ($video) {
-    $video.muted = true;
+    if (shouldForceMuteVideo()) {
+      $video.muted = true;
+    } else {
+      $video.muted = true; // стартуем с mute, управляем кнопкой ниже
+    }
   }
   if ($videoBackward) {
     $videoBackward.muted = true;
@@ -997,10 +1019,19 @@ function initSoundButtons() {
 
       // Управление видео
       if ($video) {
-        $video.muted = !isSoundOn;
+        // На iOS и Safari desktop — всегда держим видео muted
+        if (shouldForceMuteVideo()) {
+          $video.muted = true;
+        } else {
+          $video.muted = !isSoundOn;
+        }
       }
       if ($videoBackward) {
-        $videoBackward.muted = !isSoundOn;
+        if (shouldForceMuteVideo()) {
+          $videoBackward.muted = true;
+        } else {
+          $videoBackward.muted = !isSoundOn;
+        }
       }
 
       // Управление аудио
