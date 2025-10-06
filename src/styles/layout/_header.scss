@@ -10,9 +10,16 @@
 
     transition: opacity 0.3s ease, visibility 0.3s ease;
 
+    &.hidden {
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
     &.visible {
         opacity: 1;
         visibility: visible;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
     }
 
     @include media ("<tablet") {
@@ -25,7 +32,7 @@
 
         @include media ("<tablet") {
             max-width: 190px;
-        }   
+        }
     }
 
     &_content {
@@ -33,5 +40,20 @@
         align-items: center;
         justify-content: space-between;
         gap: 30px;
+    }
+
+    &_button {
+
+        &.hidden {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        &.visible {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
     }
 }
