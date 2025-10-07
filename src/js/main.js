@@ -122,6 +122,7 @@ const $video = document.getElementById('video');
 const $videoBackward = document.getElementById('video-backward');
 const $audioMain = document.getElementById('audio-main');
 const $audioDrums = document.getElementById('audio-drums');
+const $audioBackground = document.getElementById('audio-background');
 const $sections = Array.from(document.querySelectorAll('.fp-section'));
 
 let fullPageInstance = null;
@@ -129,6 +130,7 @@ let currentSectionIndex = 0;
 let isTransitioning = false;
 let scrollingSpeed = CONFIG.SCROLLING_SPEED.DEFAULT;
 let segmentStopRafId = null;
+let backgroundAudioTimer = null;
 let isIntroPlayed = false;
 let introClickHandler = null;
 let introPointerHandler = null;
@@ -366,6 +368,9 @@ function playVideoSegment(fromTime, toTime, durationMs, onComplete) {
     segmentStopRafId = null;
   }
 
+  // Запускаем посекционное воспроизведение background audio
+  playBackgroundAudioSegment(fromTime, toTime, durationMs);
+
   const forward = toTime >= fromTime;
   const delta = Math.max(0.0001, Math.abs(toTime - fromTime));
   const durationSec = Math.max(
@@ -455,6 +460,8 @@ function playVideoSegmentReverse(fromTime, toTime, durationMs, onComplete) {
   const prepareAndShowBackward = () => {
     try {
       $videoBackward.currentTime = backwardFromTime;
+      // Запускаем посекционное воспроизведение background audio для обратного видео
+      playBackgroundAudioSegment(fromTime, toTime, durationMs);
     } catch (e) {
       console.warn('Failed to set backward video time:', e);
     }
@@ -531,6 +538,7 @@ function playVideoSegmentReverse(fromTime, toTime, durationMs, onComplete) {
     prepareAndShowMain();
   }, durationMs);
 }
+
 
 // Временное применение классов/стилей FullPage для <html> и <body> во время интро
 function applyFullpageScaffoldClasses() {
@@ -905,14 +913,23 @@ function initFullPage() {
 
 // Функция для инициализации аудио
 function initAudio() {
-  if (!$audioMain || !$audioDrums) {
-    console.warn('Audio elements not found');
+  console.log('Initializing audio elements...');
+  
+  if (!$audioMain || !$audioDrums || !$audioBackground) {
+    console.error('Audio elements not found:', {
+      audioMain: !!$audioMain,
+      audioDrums: !!$audioDrums,
+      audioBackground: !!$audioBackground
+    });
     return;
   }
+
+  console.log('All audio elements found, configuring...');
 
   // Настраиваем аудио элементы
   $audioMain.loop = true;
   $audioDrums.loop = true;
+  $audioBackground.loop = false; // Не зацикливаем background audio - играем посекционно
 
   // Устанавливаем пониженную громкость аудио по умолчанию
   // Значение в диапазоне 0.0 - 1.0 (где 1.0 = 100%)
@@ -922,14 +939,28 @@ function initAudio() {
   try {
     $audioDrums.volume = 0.2;
   } catch {}
+  try {
+    $audioBackground.volume = 0.6;
+  } catch {}
 
   // Сбрасываем аудио в начало при перезагрузке
   $audioMain.currentTime = 0;
   $audioDrums.currentTime = 0;
+  $audioBackground.currentTime = 0;
 
   // Все аудио элементы по умолчанию muted, но запускаем их
   $audioMain.muted = true;
   $audioDrums.muted = true;
+  $audioBackground.muted = true;
+
+  console.log('Audio background configured:', {
+    loop: $audioBackground.loop,
+    volume: $audioBackground.volume,
+    muted: $audioBackground.muted,
+    currentTime: $audioBackground.currentTime,
+    readyState: $audioBackground.readyState,
+    src: $audioBackground.src || $audioBackground.querySelector('source')?.src
+  });
 
   // Видео элементы тоже muted по умолчанию
   if ($video) {
@@ -943,7 +974,50 @@ function initAudio() {
     $videoBackward.muted = true;
   }
 
-  // Не запускаем основное аудио сразу - оно запустится при нажатии на кнопку
+  // Добавляем обработчики событий для audio-background
+  if ($audioBackground) {
+    $audioBackground.addEventListener('loadstart', () => {
+      console.log('Audio background: loadstart');
+    });
+    
+    $audioBackground.addEventListener('loadeddata', () => {
+      console.log('Audio background: loadeddata', {
+        duration: $audioBackground.duration,
+        readyState: $audioBackground.readyState
+      });
+    });
+    
+    $audioBackground.addEventListener('canplay', () => {
+      console.log('Audio background: canplay');
+    });
+    
+    $audioBackground.addEventListener('play', () => {
+      console.log('Audio background: play');
+    });
+    
+    $audioBackground.addEventListener('pause', () => {
+      console.log('Audio background: pause');
+    });
+    
+    $audioBackground.addEventListener('error', (e) => {
+      console.error('Audio background: error', e);
+    });
+    
+    $audioBackground.addEventListener('timeupdate', () => {
+      // Логируем только каждые 5 секунд, чтобы не засорять консоль
+      if (Math.floor($audioBackground.currentTime) % 5 === 0 && $audioBackground.currentTime > 0) {
+        console.log('Audio background: timeupdate', {
+          currentTime: $audioBackground.currentTime,
+          duration: $audioBackground.duration,
+          paused: $audioBackground.paused,
+          muted: $audioBackground.muted
+        });
+      }
+    });
+  }
+
+  // Не запускаем audio-background автоматически - он будет запускаться посекционно
+  console.log('Audio background ready for sectional playback');
 }
 
 // Функция для запуска основного аудио
@@ -979,6 +1053,87 @@ function startDrumsAudio() {
     }
   } catch (error) {
     console.warn('Drums audio initialization error:', error);
+  }
+}
+
+// Функция для посекционного воспроизведения background audio
+function playBackgroundAudioSegment(fromTime, toTime, durationMs, onComplete) {
+  if (!$audioBackground) {
+    console.error('Audio background element not found');
+    return;
+  }
+
+  // Очищаем предыдущий таймер
+  if (backgroundAudioTimer) {
+    clearTimeout(backgroundAudioTimer);
+    backgroundAudioTimer = null;
+  }
+
+  // Останавливаем текущее воспроизведение
+  try {
+    $audioBackground.pause();
+  } catch (error) {
+    console.warn('Error pausing background audio:', error);
+  }
+
+  console.log('Playing background audio segment:', {
+    fromTime: fromTime,
+    toTime: toTime,
+    durationMs: durationMs,
+    audioDuration: $audioBackground.duration
+  });
+
+  try {
+    // Рассчитываем пропорциональное время для audio
+    const audioDuration = $audioBackground.duration || 0;
+    const videoDuration = $video?.duration || 0;
+    
+    if (audioDuration > 0 && videoDuration > 0) {
+      const audioFromTime = (fromTime / videoDuration) * audioDuration;
+      const audioToTime = (toTime / videoDuration) * audioDuration;
+      
+      console.log('Audio segment times:', {
+        audioFromTime: audioFromTime,
+        audioToTime: audioToTime,
+        audioDuration: audioDuration
+      });
+
+      // Устанавливаем начальное время
+      $audioBackground.currentTime = audioFromTime;
+      
+      // Запускаем воспроизведение
+      const playPromise = $audioBackground.play();
+      if (playPromise && playPromise.then) {
+        playPromise.then(() => {
+          console.log('Background audio segment started');
+          
+          // Устанавливаем таймер для остановки
+          backgroundAudioTimer = setTimeout(() => {
+            try {
+              $audioBackground.currentTime = audioToTime;
+              $audioBackground.pause();
+              console.log('Background audio segment completed');
+              backgroundAudioTimer = null;
+              if (typeof onComplete === 'function') {
+                onComplete();
+              }
+            } catch (error) {
+              console.error('Error stopping background audio segment:', error);
+            }
+          }, durationMs);
+          
+        }).catch((error) => {
+          console.error('Background audio segment play error:', error);
+        });
+      }
+    } else {
+      console.warn('Cannot play background audio segment: invalid durations', {
+        audioDuration: audioDuration,
+        videoDuration: videoDuration
+      });
+    }
+  } catch (error) {
+    console.error('Background audio segment error:', error);
   }
 }
 
@@ -1046,6 +1201,16 @@ function initSoundButtons() {
         $audioDrums.muted = !isSoundOn;
         // Барабаны всегда запускаются при достижении секции 2
         // Кнопка звука только управляет их слышимостью (mute/unmute)
+      }
+      if ($audioBackground) {
+        $audioBackground.muted = !isSoundOn;
+        console.log('Audio background mute state changed:', {
+          muted: $audioBackground.muted,
+          isSoundOn: isSoundOn,
+          currentTime: $audioBackground.currentTime,
+          paused: $audioBackground.paused
+        });
+        // Background audio всегда играет, кнопка звука управляет только слышимостью
       }
     });
   });
@@ -1270,6 +1435,12 @@ function cleanup() {
     drumsStartTimer = null;
   }
 
+  // Очищаем таймер background audio
+  if (backgroundAudioTimer) {
+    clearTimeout(backgroundAudioTimer);
+    backgroundAudioTimer = null;
+  }
+
   // Останавливаем и сбрасываем все аудио
   if ($audioMain) {
     $audioMain.pause();
@@ -1278,6 +1449,10 @@ function cleanup() {
   if ($audioDrums) {
     $audioDrums.pause();
     $audioDrums.currentTime = 0;
+  }
+  if ($audioBackground) {
+    $audioBackground.pause();
+    $audioBackground.currentTime = 0;
   }
 }
 
