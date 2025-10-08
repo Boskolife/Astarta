@@ -3,7 +3,6 @@ import fullpage from 'fullpage.js';
 const CONFIG = {
   SCROLLING_SPEED: {
     DEFAULT: 3000,
-    QUICK_JUMP: 1500,
   },
   VIDEO_SYNC: {
     EPSILON: 1 / 120,
@@ -27,7 +26,6 @@ const SEGMENTS = [
   [22.25, 22.25], // Секция 4 (data-seg="4")
   [26.34, 26.34], // Секция 5 (data-seg="5")
   [29.4, 29.4], // Секция 6 (data-seg="6")
-  // [29.7, 29.7], // Секция 7 (data-seg="7")
 ];
 
 const VIDEO_SEGMENTS = [
@@ -45,8 +43,6 @@ const VIDEO_SEGMENTS = [
   [27.45, 27.45], // Видео сегмент 5: 26.34 - 26.34 сек (секция 5)
   [27.45, 29.0], // Промежуточный сегмент: 22.1 - 26.34 сек (переход 5→6)
   [29.0, 29.0], // Видео сегмент 6: 29.4 - 29.4 сек (секция 6)
-  // [29.0, 29.7], // Промежуточный сегмент: 22.1 - 26.34 сек (переход 6→7)
-  // [29.7, 29.7], // Видео сегмент 7: 29.4 - 29.4 сек (секция 7)
 ];
 
 const TIME_WRITE_EPSILON = CONFIG.VIDEO_SYNC.EPSILON;
@@ -138,7 +134,6 @@ let introPauseHandler = null;
 let drumsStartTimer = null;
 
 let isInitialAnimationStarted = false;
-let isQuickJumpToForm = false;
 
 const eventListeners = new Map();
 
@@ -300,9 +295,6 @@ function getSectionVideoAnchorTime(sectionIndex) {
 }
 
 function updateScrollDurationForTransition(fromSectionIndex, toSectionIndex) {
-  if (isQuickJumpToForm) {
-    return;
-  }
 
   const fromT = getSectionVideoAnchorTime(fromSectionIndex);
   const toT = getSectionVideoAnchorTime(toSectionIndex);
@@ -329,9 +321,6 @@ function updateScrollDurationForTransition(fromSectionIndex, toSectionIndex) {
 }
 
 function startVideoTransition(fromSectionIndex, toSectionIndex) {
-  if (isQuickJumpToForm) {
-    return;
-  }
 
   if (!$video || $video.readyState < 2) return;
 
@@ -699,7 +688,7 @@ function startIntroFlow() {
 }
 
 // Функция для управления видимостью UI элементов
-function updateUIVisibility(sectionIndex, isInTransition = false) {
+function updateUIVisibility(sectionIndex) {
   // Управляем видимостью sound_button_wrap
   const soundButtonWrap = document.querySelector('.sound_button_wrap');
   if (soundButtonWrap) {
@@ -868,13 +857,9 @@ function initFullPage() {
       currentSectionIndex = destination.index;
 
       // Обновляем видимость UI элементов
-      updateUIVisibility(currentSectionIndex, false);
+      updateUIVisibility(currentSectionIndex);
 
-      // Для секции с формой принудительно показываем все элементы без анимации
       const newSection = $sections[currentSectionIndex];
-      // if (newSection && newSection.classList.contains('seventh-section')) {
-      //   showFormElementsWithoutAnimation(newSection);
-      // }
 
       // Запускаем анимацию для новой секции
       // Избегаем двойного запуска для первой секции при инициализации
@@ -889,7 +874,7 @@ function initFullPage() {
     afterRender: function () {
       // Инициализируем первую секцию
       currentSectionIndex = 0;
-      updateUIVisibility(0, false);
+      updateUIVisibility(0);
 
       // Запускаем анимацию первой секции только один раз
       const firstSection = $sections[0];
@@ -913,18 +898,9 @@ function initFullPage() {
 
 // Функция для инициализации аудио
 function initAudio() {
-  console.log('Initializing audio elements...');
-  
   if (!$audioMain || !$audioDrums || !$audioBackground) {
-    console.error('Audio elements not found:', {
-      audioMain: !!$audioMain,
-      audioDrums: !!$audioDrums,
-      audioBackground: !!$audioBackground
-    });
     return;
   }
-
-  console.log('All audio elements found, configuring...');
 
   // Настраиваем аудио элементы
   $audioMain.loop = true;
@@ -953,14 +929,6 @@ function initAudio() {
   $audioDrums.muted = true;
   $audioBackground.muted = true;
 
-  console.log('Audio background configured:', {
-    loop: $audioBackground.loop,
-    volume: $audioBackground.volume,
-    muted: $audioBackground.muted,
-    currentTime: $audioBackground.currentTime,
-    readyState: $audioBackground.readyState,
-    src: $audioBackground.src || $audioBackground.querySelector('source')?.src
-  });
 
   // Видео элементы тоже muted по умолчанию
   if ($video) {
@@ -974,50 +942,7 @@ function initAudio() {
     $videoBackward.muted = true;
   }
 
-  // Добавляем обработчики событий для audio-background
-  if ($audioBackground) {
-    $audioBackground.addEventListener('loadstart', () => {
-      console.log('Audio background: loadstart');
-    });
-    
-    $audioBackground.addEventListener('loadeddata', () => {
-      console.log('Audio background: loadeddata', {
-        duration: $audioBackground.duration,
-        readyState: $audioBackground.readyState
-      });
-    });
-    
-    $audioBackground.addEventListener('canplay', () => {
-      console.log('Audio background: canplay');
-    });
-    
-    $audioBackground.addEventListener('play', () => {
-      console.log('Audio background: play');
-    });
-    
-    $audioBackground.addEventListener('pause', () => {
-      console.log('Audio background: pause');
-    });
-    
-    $audioBackground.addEventListener('error', (e) => {
-      console.error('Audio background: error', e);
-    });
-    
-    $audioBackground.addEventListener('timeupdate', () => {
-      // Логируем только каждые 5 секунд, чтобы не засорять консоль
-      if (Math.floor($audioBackground.currentTime) % 5 === 0 && $audioBackground.currentTime > 0) {
-        console.log('Audio background: timeupdate', {
-          currentTime: $audioBackground.currentTime,
-          duration: $audioBackground.duration,
-          paused: $audioBackground.paused,
-          muted: $audioBackground.muted
-        });
-      }
-    });
-  }
-
   // Не запускаем audio-background автоматически - он будет запускаться посекционно
-  console.log('Audio background ready for sectional playback');
 }
 
 // Функция для запуска основного аудио
@@ -1059,7 +984,7 @@ function startDrumsAudio() {
 // Функция для посекционного воспроизведения background audio
 function playBackgroundAudioSegment(fromTime, toTime, durationMs, onComplete) {
   if (!$audioBackground) {
-    console.error('Audio background element not found');
+    console.warn('Audio background element not found');
     return;
   }
 
@@ -1076,12 +1001,6 @@ function playBackgroundAudioSegment(fromTime, toTime, durationMs, onComplete) {
     console.warn('Error pausing background audio:', error);
   }
 
-  console.log('Playing background audio segment:', {
-    fromTime: fromTime,
-    toTime: toTime,
-    durationMs: durationMs,
-    audioDuration: $audioBackground.duration
-  });
 
   try {
     // Рассчитываем пропорциональное время для audio
@@ -1092,11 +1011,6 @@ function playBackgroundAudioSegment(fromTime, toTime, durationMs, onComplete) {
       const audioFromTime = (fromTime / videoDuration) * audioDuration;
       const audioToTime = (toTime / videoDuration) * audioDuration;
       
-      console.log('Audio segment times:', {
-        audioFromTime: audioFromTime,
-        audioToTime: audioToTime,
-        audioDuration: audioDuration
-      });
 
       // Устанавливаем начальное время
       $audioBackground.currentTime = audioFromTime;
@@ -1105,35 +1019,27 @@ function playBackgroundAudioSegment(fromTime, toTime, durationMs, onComplete) {
       const playPromise = $audioBackground.play();
       if (playPromise && playPromise.then) {
         playPromise.then(() => {
-          console.log('Background audio segment started');
-          
           // Устанавливаем таймер для остановки
           backgroundAudioTimer = setTimeout(() => {
             try {
               $audioBackground.currentTime = audioToTime;
               $audioBackground.pause();
-              console.log('Background audio segment completed');
               backgroundAudioTimer = null;
               if (typeof onComplete === 'function') {
                 onComplete();
               }
             } catch (error) {
-              console.error('Error stopping background audio segment:', error);
+              console.warn('Error stopping background audio segment:', error);
             }
           }, durationMs);
           
         }).catch((error) => {
-          console.error('Background audio segment play error:', error);
+          console.warn('Background audio segment play error:', error);
         });
       }
-    } else {
-      console.warn('Cannot play background audio segment: invalid durations', {
-        audioDuration: audioDuration,
-        videoDuration: videoDuration
-      });
     }
   } catch (error) {
-    console.error('Background audio segment error:', error);
+    console.warn('Background audio segment error:', error);
   }
 }
 
@@ -1204,12 +1110,6 @@ function initSoundButtons() {
       }
       if ($audioBackground) {
         $audioBackground.muted = !isSoundOn;
-        console.log('Audio background mute state changed:', {
-          muted: $audioBackground.muted,
-          isSoundOn: isSoundOn,
-          currentTime: $audioBackground.currentTime,
-          paused: $audioBackground.paused
-        });
         // Background audio всегда играет, кнопка звука управляет только слышимостью
       }
     });
@@ -1305,7 +1205,6 @@ function initContactUsButton() {
     contactUsButton.addEventListener('click', (e) => {
       e.preventDefault(); // Предотвращаем стандартное поведение ссылки
       openFormPopup(); // Открываем попап вместо скролла к секции
-      // quickJumpToForm(); // Закомментировано - скролл к секции
     });
   }
 }
@@ -1384,11 +1283,11 @@ eventListeners.set('backward-video-metadata', {
 
 // Обработчики ошибок для видео
 const handleVideoError = (e) => {
-  console.error('Main video error:', e);
+  console.warn('Main video error:', e);
 };
 
 const handleBackwardVideoError = (e) => {
-  console.error('Backward video error:', e);
+  console.warn('Backward video error:', e);
 };
 
 $video?.addEventListener('error', handleVideoError);
@@ -1542,6 +1441,6 @@ window.addEventListener('load', () => {
     // Стартуем интро, а инициализацию FullPage выполним после его завершения
     startIntroFlow();
   } catch (error) {
-    console.error('Initialization error:', error);
+    console.warn('Initialization error:', error);
   }
 });
