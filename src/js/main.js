@@ -3,6 +3,7 @@ import fullpage from 'fullpage.js';
 const CONFIG = {
   SCROLLING_SPEED: {
     DEFAULT: 3000,
+    SPEED_MULTIPLIER: 0.5, // Ускорение в 2 раза (0.5 = в 2 раза быстрее)
   },
   VIDEO_SYNC: {
     EPSILON: 1 / 120,
@@ -141,7 +142,8 @@ const eventListeners = new Map();
 function isIOSDevice() {
   const ua = navigator.userAgent || navigator.vendor || window.opera;
   const isiOS = /iPad|iPhone|iPod/i.test(ua);
-  const isIPadOS = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+  const isIPadOS =
+    navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
   return isiOS || isIPadOS;
 }
 
@@ -295,12 +297,15 @@ function getSectionVideoAnchorTime(sectionIndex) {
 }
 
 function updateScrollDurationForTransition(fromSectionIndex, toSectionIndex) {
-
   const fromT = getSectionVideoAnchorTime(fromSectionIndex);
   const toT = getSectionVideoAnchorTime(toSectionIndex);
   const deltaMs = Math.max(0, Math.round(Math.abs(toT - fromT) * 1000));
 
-  const durationMs = Math.max(200, deltaMs);
+  // Применяем множитель скорости для ускорения/замедления
+  const durationMs = Math.max(
+    200,
+    deltaMs * CONFIG.SCROLLING_SPEED.SPEED_MULTIPLIER,
+  );
   scrollingSpeed = durationMs;
 
   try {
@@ -321,7 +326,6 @@ function updateScrollDurationForTransition(fromSectionIndex, toSectionIndex) {
 }
 
 function startVideoTransition(fromSectionIndex, toSectionIndex) {
-
   if (!$video || $video.readyState < 2) return;
 
   const fromVideoSegIndex = fromSectionIndex * 2 + 2;
@@ -527,7 +531,6 @@ function playVideoSegmentReverse(fromTime, toTime, durationMs, onComplete) {
     prepareAndShowMain();
   }, durationMs);
 }
-
 
 // Временное применение классов/стилей FullPage для <html> и <body> во время интро
 function applyFullpageScaffoldClasses() {
@@ -840,7 +843,7 @@ function initFullPage() {
           }
           drumsStartTimer = null;
         }, CONFIG.AUDIO.DRUMS_START_DELAY);
-      } 
+      }
       // Для всех остальных секций (2, 3, 4, 5, 6) барабаны продолжают играть
 
       // Подгоняем длительность скролла под длительность видео между секциями
@@ -929,7 +932,6 @@ function initAudio() {
   $audioDrums.muted = true;
   $audioBackground.muted = true;
 
-
   // Видео элементы тоже muted по умолчанию
   if ($video) {
     if (shouldForceMuteVideo()) {
@@ -1001,41 +1003,40 @@ function playBackgroundAudioSegment(fromTime, toTime, durationMs, onComplete) {
     console.warn('Error pausing background audio:', error);
   }
 
-
   try {
     // Рассчитываем пропорциональное время для audio
     const audioDuration = $audioBackground.duration || 0;
     const videoDuration = $video?.duration || 0;
-    
+
     if (audioDuration > 0 && videoDuration > 0) {
       const audioFromTime = (fromTime / videoDuration) * audioDuration;
       const audioToTime = (toTime / videoDuration) * audioDuration;
-      
 
       // Устанавливаем начальное время
       $audioBackground.currentTime = audioFromTime;
-      
+
       // Запускаем воспроизведение
       const playPromise = $audioBackground.play();
       if (playPromise && playPromise.then) {
-        playPromise.then(() => {
-          // Устанавливаем таймер для остановки
-          backgroundAudioTimer = setTimeout(() => {
-            try {
-              $audioBackground.currentTime = audioToTime;
-              $audioBackground.pause();
-              backgroundAudioTimer = null;
-              if (typeof onComplete === 'function') {
-                onComplete();
+        playPromise
+          .then(() => {
+            // Устанавливаем таймер для остановки
+            backgroundAudioTimer = setTimeout(() => {
+              try {
+                $audioBackground.currentTime = audioToTime;
+                $audioBackground.pause();
+                backgroundAudioTimer = null;
+                if (typeof onComplete === 'function') {
+                  onComplete();
+                }
+              } catch (error) {
+                console.warn('Error stopping background audio segment:', error);
               }
-            } catch (error) {
-              console.warn('Error stopping background audio segment:', error);
-            }
-          }, durationMs);
-          
-        }).catch((error) => {
-          console.warn('Background audio segment play error:', error);
-        });
+            }, durationMs);
+          })
+          .catch((error) => {
+            console.warn('Background audio segment play error:', error);
+          });
       }
     }
   } catch (error) {
@@ -1440,6 +1441,11 @@ window.addEventListener('load', () => {
 
     // Стартуем интро, а инициализацию FullPage выполним после его завершения
     startIntroFlow();
+
+    // Делаем функцию управления скоростью доступной глобально
+    window.setPlaybackSpeed = function (multiplier) {
+      CONFIG.SCROLLING_SPEED.SPEED_MULTIPLIER = multiplier;
+    };
   } catch (error) {
     console.warn('Initialization error:', error);
   }
