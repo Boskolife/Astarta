@@ -10,12 +10,12 @@ const CONFIG = {
     MIN_DURATION: 0.2,
   },
   ANIMATION: {
-    TYPING_DELAY: 50,
-    SECTION_TRANSITION: 200,
+    TYPING_DELAY: 25, // Убираем задержку появления символов
+    SECTION_TRANSITION: 0, // Убираем задержку перехода между секциями
     FONT_LOADING_FALLBACK: 100,
   },
   AUDIO: {
-    DRUMS_START_DELAY: 2000,
+    DRUMS_START_DELAY: 0, // Убираем задержку запуска барабанов
   },
 };
 
@@ -225,7 +225,7 @@ function resetSectionBlocks(section) {
 }
 
 // Функция для создания анимации печати
-function createTypingAnimation(element, delay = 100) {
+function createTypingAnimation(element, delay = 25) {
   if (!element) return Promise.resolve();
 
   if (!element.classList.contains('typing-initialized')) {
@@ -446,6 +446,18 @@ function playVideoSegmentReverse(fromTime, toTime, durationMs, onComplete) {
     $videoBackward.pause();
   } catch {}
 
+  // Применяем множитель скорости к обратному видео
+  const adjustedDurationMs =
+    durationMs * CONFIG.SCROLLING_SPEED.SPEED_MULTIPLIER;
+
+  // Рассчитываем скорость воспроизведения для обратного видео
+  const delta = Math.max(0.0001, Math.abs(toTime - fromTime));
+  const durationSec = Math.max(
+    CONFIG.VIDEO_SYNC.MIN_DURATION,
+    adjustedDurationMs / 1000,
+  );
+  const playbackRate = Math.max(0.25, Math.min(8, delta / durationSec));
+
   const videoDuration = $video.duration || 0;
   const backwardFromTime = videoDuration - fromTime;
   const backwardToTime = videoDuration - toTime;
@@ -454,7 +466,7 @@ function playVideoSegmentReverse(fromTime, toTime, durationMs, onComplete) {
     try {
       $videoBackward.currentTime = backwardFromTime;
       // Запускаем посекционное воспроизведение background audio для обратного видео
-      playBackgroundAudioSegment(fromTime, toTime, durationMs);
+      playBackgroundAudioSegment(fromTime, toTime, adjustedDurationMs);
     } catch (e) {
       console.warn('Failed to set backward video time:', e);
     }
@@ -462,6 +474,9 @@ function playVideoSegmentReverse(fromTime, toTime, durationMs, onComplete) {
     const showWhenReady = () => {
       $video.classList.remove('is-visible');
       $videoBackward.classList.add('is-visible');
+
+      // Устанавливаем скорость воспроизведения для обратного видео
+      $videoBackward.playbackRate = playbackRate;
 
       const p = $videoBackward.play();
       if (p && p.then) {
@@ -490,6 +505,7 @@ function playVideoSegmentReverse(fromTime, toTime, durationMs, onComplete) {
   setTimeout(() => {
     try {
       $videoBackward.pause();
+      $videoBackward.playbackRate = 1; // Сбрасываем скорость воспроизведения
     } catch {}
 
     const prepareAndShowMain = () => {
@@ -529,7 +545,7 @@ function playVideoSegmentReverse(fromTime, toTime, durationMs, onComplete) {
     };
 
     prepareAndShowMain();
-  }, durationMs);
+  }, adjustedDurationMs);
 }
 
 // Временное применение классов/стилей FullPage для <html> и <body> во время интро
