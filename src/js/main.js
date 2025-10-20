@@ -1243,6 +1243,219 @@ function initFormPopup() {
       closeFormPopup();
     }
   });
+
+  // Инициализация обработки формы
+  initFormSubmission();
+}
+
+// Обработка отправки формы
+function initFormSubmission() {
+  const forms = document.querySelectorAll('#contact-form');
+  
+  forms.forEach(form => {
+    form.addEventListener('submit', handleFormSubmit);
+  });
+}
+
+// Валидация формы на клиенте
+function validateForm(formData) {
+  const errors = {};
+  
+  // Проверка имени
+  if (!formData.firstName || formData.firstName.trim().length < 2) {
+    errors.firstName = 'Имя должно содержать минимум 2 символа';
+  }
+  
+  // Проверка фамилии
+  if (!formData.lastName || formData.lastName.trim().length < 2) {
+    errors.lastName = 'Фамилия должна содержать минимум 2 символа';
+  }
+  
+  // Проверка email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!formData.email || !emailRegex.test(formData.email)) {
+    errors.email = 'Введите корректный email адрес';
+  }
+  
+  // Проверка телефона
+  const phoneRegex = /^[\+\d\s\-\(\)]{10,}$/;
+  if (!formData.phone || !phoneRegex.test(formData.phone)) {
+    errors.phone = 'Введите корректный номер телефона';
+  }
+  
+  return errors;
+}
+
+// Отображение ошибок валидации
+function displayValidationErrors(form, errors) {
+  // Очищаем предыдущие ошибки
+  const errorElements = form.querySelectorAll('.field-error');
+  errorElements.forEach(el => el.remove());
+  
+  const inputs = form.querySelectorAll('input');
+  inputs.forEach(input => input.classList.remove('error'));
+  
+  // Показываем новые ошибки
+  Object.keys(errors).forEach(fieldName => {
+    const input = form.querySelector(`[name="${fieldName}"]`);
+    if (input) {
+      input.classList.add('error');
+      
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'field-error';
+      errorDiv.textContent = errors[fieldName];
+      
+      const inputWrap = input.closest('.input_wrap');
+      if (inputWrap) {
+        inputWrap.appendChild(errorDiv);
+      } else {
+        input.parentNode.insertBefore(errorDiv, input.nextSibling);
+      }
+    }
+  });
+}
+
+// Показать уведомление
+function showNotification(message, type = 'success') {
+  // Удаляем существующие уведомления
+  const existingNotifications = document.querySelectorAll('.form-notification');
+  existingNotifications.forEach(notification => notification.remove());
+  
+  const notification = document.createElement('div');
+  notification.className = `form-notification form-notification--${type}`;
+  notification.innerHTML = `
+    <div class="form-notification__content">
+      <span class="form-notification__message">${message}</span>
+      <button class="form-notification__close" aria-label="Закрыть">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Показываем уведомление
+  setTimeout(() => notification.classList.add('show'), 100);
+  
+  // Обработчик закрытия
+  const closeBtn = notification.querySelector('.form-notification__close');
+  closeBtn.addEventListener('click', () => {
+    notification.classList.remove('show');
+    setTimeout(() => notification.remove(), 300);
+  });
+  
+  // Автоматическое скрытие через 5 секунд для успешных уведомлений
+  if (type === 'success') {
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+      }
+    }, 5000);
+  }
+}
+
+// Основной обработчик отправки формы
+async function handleFormSubmit(event) {
+  event.preventDefault();
+  
+  const form = event.target;
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const btnText = submitBtn.querySelector('.btn-text') || submitBtn;
+  const originalText = btnText.textContent;
+  
+  // Получаем данные формы
+  const formData = new FormData(form);
+  const data = {
+    firstName: formData.get('firstName'),
+    lastName: formData.get('lastName'),
+    email: formData.get('email'),
+    phone: formData.get('phone')
+  };
+  
+  // Валидация на клиенте
+  const errors = validateForm(data);
+  if (Object.keys(errors).length > 0) {
+    displayValidationErrors(form, errors);
+    return;
+  }
+  
+  // Очищаем ошибки
+  const errorElements = form.querySelectorAll('.field-error');
+  errorElements.forEach(el => el.remove());
+  const inputs = form.querySelectorAll('input');
+  inputs.forEach(input => input.classList.remove('error'));
+  
+  // Блокируем кнопку и показываем загрузку
+  submitBtn.disabled = true;
+  btnText.textContent = 'Отправка...';
+  submitBtn.classList.add('loading');
+  
+  try {
+    // Определяем URL для отправки
+    let actionUrl;
+    
+    // Проверяем, работаем ли мы в WordPress
+    if (typeof astarta_ajax !== 'undefined' && astarta_ajax.ajax_url) {
+      // WordPress AJAX
+      actionUrl = astarta_ajax.ajax_url;
+      data.action = 'submit_contact_form';
+      data.nonce = astarta_ajax.nonce;
+    } else {
+      // Прямая отправка на PHP файл
+      actionUrl = './form-handler.php';
+      data.nonce = 'direct_submission';
+    }
+    
+    // Отправляем данные
+    const response = await fetch(actionUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams(data)
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      // Успешная отправка
+      showNotification(result.data.message || 'Форма успешно отправлена!', 'success');
+      
+      // Сбрасываем форму
+      form.reset();
+      
+      // Закрываем попап через 2 секунды
+      setTimeout(() => {
+        closeFormPopup();
+      }, 2000);
+      
+    } else {
+      // Ошибка от сервера
+      if (result.data && result.data.errors) {
+        displayValidationErrors(form, result.data.errors);
+      }
+      
+      showNotification(
+        result.data.message || 'Произошла ошибка при отправке формы',
+        'error'
+      );
+    }
+    
+  } catch (error) {
+    console.error('Form submission error:', error);
+    showNotification(
+      'Произошла ошибка при отправке формы. Проверьте подключение к интернету и попробуйте снова.',
+      'error'
+    );
+  } finally {
+    // Восстанавливаем кнопку
+    submitBtn.disabled = false;
+    btnText.textContent = originalText;
+    submitBtn.classList.remove('loading');
+  }
 }
 
 // Обработчик загрузки метаданных видео

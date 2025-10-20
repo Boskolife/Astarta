@@ -1,0 +1,266 @@
+/* Astarta Contacts Admin Styles */
+
+.astarta-stats-cards {
+    display: flex;
+    gap: 20px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+.stats-card {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    min-width: 150px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+}
+
+.stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.stats-card h3 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.stats-number {
+    display: block;
+    font-size: 32px;
+    font-weight: bold;
+    color: #333;
+}
+
+.stats-number.stats-new {
+    color: #007cba;
+}
+
+.stats-number.stats-processing {
+    color: #f39c12;
+}
+
+.stats-number.stats-completed {
+    color: #27ae60;
+}
+
+.astarta-filters {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 15px;
+    margin: 20px 0;
+}
+
+.astarta-filters form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.astarta-filters select,
+.astarta-filters input[type="text"] {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.astarta-filters input[type="text"] {
+    min-width: 250px;
+}
+
+.contact-meta {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+}
+
+.status-select {
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 12px;
+    background: #fff;
+}
+
+.status-select option[value="new"] {
+    background-color: #e3f2fd;
+}
+
+.status-select option[value="processing"] {
+    background-color: #fff3e0;
+}
+
+.status-select option[value="completed"] {
+    background-color: #e8f5e8;
+}
+
+.status-select option[value="cancelled"] {
+    background-color: #ffebee;
+}
+
+/* Модальное окно */
+.astarta-modal {
+    position: fixed;
+    z-index: 100000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    animation: fadeIn 0.3s ease;
+}
+
+.astarta-modal-content {
+    background-color: #fff;
+    margin: 5% auto;
+    padding: 30px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 600px;
+    position: relative;
+    animation: slideIn 0.3s ease;
+}
+
+.astarta-modal-close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #aaa;
+    transition: color 0.2s ease;
+}
+
+.astarta-modal-close:hover {
+    color: #333;
+}
+
+.contact-detail-row {
+    display: flex;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.contact-detail-label {
+    font-weight: bold;
+    min-width: 120px;
+    color: #333;
+}
+
+.contact-detail-value {
+    flex: 1;
+    color: #666;
+}
+
+.astarta-stats-section {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin: 20px 0;
+    padding: 20px;
+}
+
+.astarta-stats-section h2 {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+/* Анимации */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Загрузка */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.button.loading::after {
+    content: "";
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    margin-left: 8px;
+    border: 2px solid #ccc;
+    border-top-color: #333;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .astarta-stats-cards {
+        flex-direction: column;
+    }
+    
+    .stats-card {
+        min-width: auto;
+    }
+    
+    .astarta-filters form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .astarta-filters input[type="text"] {
+        min-width: auto;
+        width: 100%;
+    }
+    
+    .astarta-modal-content {
+        width: 95%;
+        margin: 10% auto;
+        padding: 20px;
+    }
+    
+    .contact-detail-row {
+        flex-direction: column;
+    }
+    
+    .contact-detail-label {
+        min-width: auto;
+        margin-bottom: 5px;
+    }
+}
+
+/* Уведомления */
+.notice.astarta-notice {
+    border-left-color: #007cba;
+}
+
+.notice.astarta-notice.notice-success {
+    border-left-color: #46b450;
+}
+
+.notice.astarta-notice.notice-error {
+    border-left-color: #dc3232;
+}
