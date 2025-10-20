@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html <?php language_attributes(); ?>>
+<head>
+    <meta charset="<?php bloginfo('charset'); ?>">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex,nofollow">
+    <meta name="description" content="Astarta Capital - The future doesn't arrive by chance. We invest in the ecosystems where play becomes economy, and communities become nations.">
+    <meta name="theme-color" content="#010101">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="<?php echo get_template_directory_uri(); ?>/video/output-zipped.mp4" as="video" type="video/mp4">
+    <link rel="preload" href="<?php echo get_template_directory_uri(); ?>/fonts/SpaceMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="<?php echo get_template_directory_uri(); ?>/fonts/SpaceMono-Regular.woff" as="font" type="font/woff" crossorigin>
+    
+    <title><?php wp_title('|', true, 'right'); ?><?php bloginfo('name'); ?></title>
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "Astarta Capital",
+        "description": "Investment firm focused on the convergence of culture, entertainment, and blockchain technology",
+        "url": "<?php echo home_url(); ?>"
+    }
+    </script>
+    
+    <?php wp_head(); ?>
+</head>
+
+<body <?php body_class(); ?>>
+    <div class="video-stack" role="presentation" aria-hidden="true">
+        <video id="video" class="video is-visible" playsinline muted preload="auto" poster=""
+            disablePictureInPicture disableRemotePlayback aria-label="Astarta Capital presentation video">
+            <source src="<?php echo get_template_directory_uri(); ?>/video/output.mp4" media="(min-width: 479px)" type="video/mp4">
+            <source src="<?php echo get_template_directory_uri(); ?>/video/output_mob.mp4" media="(max-width: 480px)" type="video/mp4">
+        </video>
+        <video id="video-backward" class="video video-backward" playsinline muted preload="auto"
+            disablePictureInPicture disableRemotePlayback
+            aria-label="Astarta Capital presentation video (reverse)">
+            <source src="<?php echo get_template_directory_uri(); ?>/video/backward.mp4" media="(min-width: 479px)" type="video/mp4">
+            <source src="<?php echo get_template_directory_uri(); ?>/video/backward_mob.mp4" media="(max-width: 480px)" type="video/mp4">
+        </video>
+    </div>
+    
+    <div class="audio-stack" role="presentation" aria-hidden="true">
+        <audio id="audio-main" class="audio-main" playsinline muted preload="auto" loop
+            aria-label="Astarta Capital presentation audio">
+            <source src="<?php echo get_template_directory_uri(); ?>/audio/ASTARTA_Background.wav" type="audio/wav">
+        </audio>
+        <audio id="audio-drums" class="audio-drums" playsinline muted preload="auto" loop
+            aria-label="Astarta Capital presentation audio">
+            <source src="<?php echo get_template_directory_uri(); ?>/audio/ASTARTA_Drums.wav" type="audio/wav">
+        </audio>
+        <audio id="audio-background" class="audio-background" playsinline muted preload="auto"
+            aria-label="Astarta Capital presentation audio">
+            <source src="<?php echo get_template_directory_uri(); ?>/audio/SFX.wav" type="audio/wav">
+        </audio>
+    </div>
+    
+    <div class="content_wrap">
+        <?php get_template_part('templates/sound-button'); ?>
+        <?php get_template_part('templates/arrow-down'); ?>
+    </div>
+
+    <?php get_template_part('templates/header'); ?>
+    
+    <main id="fullpage" class="hidden">
+        <div class="section fp-section first-section" data-seg="0">
+            <div class="container">
+                <div class="content">
+                    <div class="col"></div>
+                    <div class="middle_col">
+                        <img src="<?php echo get_template_directory_uri(); ?>/images/site-title.png"
+                            alt="Astarta Capital - The future doesn't arrive by chance">
+                    </div>
+                    <div class="right_col">
+                        <p class="gray_text">The future doesn't arrive by chance.
+                            It's built, layer by layer, by those who see beyond the obvious.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section fp-section second-section" data-seg="1">
+            <div class="container">
+                <div class="content">
+                    <div class="right_col">
+                        <p class="gray_text">
+                            Opportunities today are scattered, fragmented,
+                            hidden in the noise of hype and volatility.
+                        </p>
+                        <br><br>
+                        <p class="gray_text">
+                            We cut through the chaos — identifying what endures, what
+                            scales, and what defines the next era of wealth.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section fp-section third-section" data-seg="2">
+            <div class="container">
+                <div class="content">
+                    <div class="number_wrap">
+                        <picture>
+                            <source srcset="<?php echo get_template_directory_uri(); ?>/images/number-1.webp" media="(min-width: 768px)">
+                            <img src="<?php echo get_template_directory_uri(); ?>/images/number-1-mob.webp" alt="image not found" class="number_img">
+                        </picture>
+                    </div>
+                    <div class="right_col">
+                        <p class="gray_text">
+                            Where culture, entertainment, and blockchain converge into a trillion-dollar
+                            frontier. We invest in the ecosystems where play becomes
+                            economy, and communities become nations.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section fp-section fourth-section" data-seg="3">
+            <div class="container">
+                <div class="content">
+                    <div class="number_wrap">
+                        <picture>
+                            <source srcset="<?php echo get_template_directory_uri(); ?>/images/number-2.webp" media="(min-width: 768px)">
+                            <img src="<?php echo get_template_directory_uri(); ?>/images/number-2-mob.webp" alt="image not found" class="number_img">
+                        </picture>
+                    </div>
+                    <div class="right_col">
+                        <p class="gray_text">Not speculation. Not headlines. Infrastructure. Protocols.</p>
+                        <br><br>
+                        <p class="gray_text">The foundations of a decentralized world. We position
+                            capital where innovation becomes indispensable.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section fp-section fifth-section" data-seg="4">
+            <div class="container">
+                <div class="content">
+                    <div class="number_wrap">
+                        <picture>
+                            <source srcset="<?php echo get_template_directory_uri(); ?>/images/number-3.webp" media="(min-width: 768px)">
+                            <img src="<?php echo get_template_directory_uri(); ?>/images/number-3-mob.webp" alt="image not found" class="number_img">
+                        </picture>
+                    </div>
+                    <div class="right_col">
+                        <p class="gray_text">Timeless, tangible, enduring.</p>
+                        <br><br>
+                        <p class="gray_text">While new technologies rise and scale, real estate remains
+                            the anchor—bridging vision with stability, growth with preservation.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section fp-section sixth-section" data-seg="5">
+            <div class="container">
+                <div class="content">
+                    <div class="right_col">
+                        <p class="gray_text">
+                            This is Astarta: a capital architecture built on foresight, conviction, and
+                            precision.
+                        </p>
+                        <br><br>
+                        <p>
+                            <span class="gray_text">Three domains.</span>
+                            <span class="gray_text">One vision.</span>
+                            <span class="gray_text">Infinite potential.</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section fp-section seventh-section" id="form" data-seg="6">
+            <div class="container">
+                <div class="content">
+                    <div class="form_wrap">
+                        <h2>Contact us to explore partnership opportunities.</h2>
+                        <form action="#" id="contact-form" novalidate>
+                            <div class="input_wrap">
+                                <input type="text" name="firstName" placeholder="First Name" autocomplete="given-name" required>
+                            </div>
+                            <div class="input_wrap">
+                                <input type="text" name="lastName" placeholder="Last Name" autocomplete="family-name" required>
+                            </div>
+                            <div class="input_wrap">
+                                <input type="tel" name="phone" placeholder="Phone Number" autocomplete="tel" required>
+                            </div>
+                            <div class="input_wrap">
+                                <input type="email" name="email" placeholder="Email Address" autocomplete="email" required>
+                            </div>
+                            <button type="submit" class="btn btn_secondary">Send</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <?php get_template_part('templates/form'); ?>
+    
+    <?php wp_footer(); ?>
+</body>
+</html>

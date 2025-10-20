@@ -1243,6 +1243,112 @@ function initFormPopup() {
       closeFormPopup();
     }
   });
+
+  // Обработка отправки формы
+  const form = popup.querySelector('#contact-form');
+  if (form) {
+    form.addEventListener('submit', handleFormSubmit);
+  }
+}
+
+// Обработчик отправки формы
+async function handleFormSubmit(e) {
+  e.preventDefault();
+  
+  const form = e.target;
+  const submitButton = form.querySelector('button[type="submit"]');
+  const originalText = submitButton.textContent;
+  
+  // Показываем состояние загрузки
+  submitButton.textContent = 'Отправка...';
+  submitButton.disabled = true;
+  
+  // Собираем данные формы
+  const formData = new FormData(form);
+  
+  // Добавляем action для WordPress AJAX
+  formData.append('action', 'handle_contact_form');
+  
+  // Добавляем nonce для безопасности
+  if (window.astartaAjax && window.astartaAjax.nonce) {
+    formData.append('nonce', window.astartaAjax.nonce);
+  }
+  
+  try {
+    // Определяем URL для отправки
+    const ajaxUrl = window.astartaAjax ? window.astartaAjax.ajaxurl : '/wp-admin/admin-ajax.php';
+    
+    const response = await fetch(ajaxUrl, {
+      method: 'POST',
+      body: formData
+    });
+    
+    const result = await response.json();
+    
+    if (result.success) {
+      // Показываем сообщение об успехе
+      showFormMessage('success', result.data.message);
+      form.reset();
+      
+      // Закрываем попап через 2 секунды
+      setTimeout(() => {
+        closeFormPopup();
+      }, 2000);
+    } else {
+      // Показываем ошибки
+      if (result.data.errors) {
+        showFormMessage('error', result.data.errors.join('<br>'));
+      } else {
+        showFormMessage('error', result.data.message || 'Произошла ошибка при отправке формы');
+      }
+    }
+  } catch (error) {
+    console.error('Ошибка отправки формы:', error);
+    showFormMessage('error', 'Произошла ошибка при отправке формы. Попробуйте еще раз.');
+  } finally {
+    // Восстанавливаем кнопку
+    submitButton.textContent = originalText;
+    submitButton.disabled = false;
+  }
+}
+
+// Показ сообщений формы
+function showFormMessage(type, message) {
+  // Удаляем предыдущие сообщения
+  const existingMessage = document.querySelector('.form-message');
+  if (existingMessage) {
+    existingMessage.remove();
+  }
+  
+  // Создаем новое сообщение
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `form-message form-message--${type}`;
+  messageDiv.innerHTML = message;
+  
+  // Добавляем стили
+  messageDiv.style.cssText = `
+    padding: 15px;
+    margin: 15px 0;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 16px;
+    line-height: 1.4;
+    ${type === 'success' 
+      ? 'background-color: rgba(76, 175, 80, 0.1); color: #4caf50; border: 1px solid rgba(76, 175, 80, 0.3);'
+      : 'background-color: rgba(244, 67, 54, 0.1); color: #f44336; border: 1px solid rgba(244, 67, 54, 0.3);'
+    }
+  `;
+  
+  // Вставляем сообщение в форму
+  const form = document.querySelector('#contact-form');
+  form.parentNode.insertBefore(messageDiv, form);
+  
+  // Автоматически скрываем сообщение через 5 секунд
+  setTimeout(() => {
+    if (messageDiv.parentNode) {
+      messageDiv.remove();
+    }
+  }, 5000);
 }
 
 // Обработчик загрузки метаданных видео
