@@ -1243,6 +1243,201 @@ function initFormPopup() {
       closeFormPopup();
     }
   });
+
+  // Инициализация обработчика формы
+  initContactForm();
+}
+
+// Валидация email
+function validateEmail(email) {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email);
+}
+
+// Валидация телефона
+function validatePhone(phone) {
+  // Убираем все нецифровые символы
+  const cleanPhone = phone.replace(/\D/g, '');
+  // Проверяем, что номер содержит от 10 до 15 цифр
+  return cleanPhone.length >= 10 && cleanPhone.length <= 15;
+}
+
+// Показать сообщение об ошибке для поля
+function showFieldError(input, message) {
+  const wrapper = input.closest('.input_wrap');
+  if (!wrapper) return;
+
+  // Удаляем предыдущее сообщение об ошибке, если есть
+  const existingError = wrapper.querySelector('.error-message');
+  if (existingError) {
+    existingError.remove();
+  }
+
+  // Создаем новое сообщение об ошибке
+  const errorElement = document.createElement('span');
+  errorElement.className = 'error-message';
+  errorElement.textContent = message;
+  wrapper.appendChild(errorElement);
+
+  // Добавляем класс ошибки
+  wrapper.classList.add('error');
+}
+
+// Очистить ошибку для поля
+function clearFieldError(input) {
+  const wrapper = input.closest('.input_wrap');
+  if (!wrapper) return;
+
+  const errorElement = wrapper.querySelector('.error-message');
+  if (errorElement) {
+    errorElement.remove();
+  }
+  wrapper.classList.remove('error');
+}
+
+// Показать уведомление
+function showNotification(message, type = 'success') {
+  // Удаляем предыдущее уведомление, если есть
+  const existingNotification = document.querySelector('.form-notification');
+  if (existingNotification) {
+    existingNotification.remove();
+  }
+
+  // Создаем новое уведомление
+  const notification = document.createElement('div');
+  notification.className = `form-notification ${type}`;
+  notification.innerHTML = `
+    <div class="notification-content">
+      <p>${message}</p>
+    </div>
+  `;
+
+  // Добавляем в body
+  document.body.appendChild(notification);
+
+  // Показываем уведомление
+  setTimeout(() => {
+    notification.classList.add('show');
+  }, 10);
+
+  // Автоматически скрываем через 5 секунд
+  setTimeout(() => {
+    notification.classList.remove('show');
+    setTimeout(() => {
+      notification.remove();
+    }, 300);
+  }, 5000);
+}
+
+// Обработчик отправки формы
+function initContactForm() {
+  const form = document.getElementById('contact-form');
+  if (!form) return;
+
+  // Обработчик отправки
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    // Получаем поля формы
+    const formData = new FormData(form);
+    const firstName = formData.get('firstName').trim();
+    const lastName = formData.get('lastName').trim();
+    const phone = formData.get('phone').trim();
+    const email = formData.get('email').trim();
+
+    // Флаг валидности
+    let isValid = true;
+
+    // Очищаем предыдущие ошибки
+    form.querySelectorAll('input').forEach(input => {
+      clearFieldError(input);
+    });
+
+    // Валидация полей
+    if (!firstName) {
+      showFieldError(form.querySelector('[name="firstName"]'), 'First name is required');
+      isValid = false;
+    }
+
+    if (!lastName) {
+      showFieldError(form.querySelector('[name="lastName"]'), 'Last name is required');
+      isValid = false;
+    }
+
+    if (!phone) {
+      showFieldError(form.querySelector('[name="phone"]'), 'Phone number is required');
+      isValid = false;
+    } else if (!validatePhone(phone)) {
+      showFieldError(form.querySelector('[name="phone"]'), 'Please enter a valid phone number');
+      isValid = false;
+    }
+
+    if (!email) {
+      showFieldError(form.querySelector('[name="email"]'), 'Email is required');
+      isValid = false;
+    } else if (!validateEmail(email)) {
+      showFieldError(form.querySelector('[name="email"]'), 'Please enter a valid email address');
+      isValid = false;
+    }
+
+    // Если форма невалидна, не отправляем
+    if (!isValid) {
+      return;
+    }
+
+    // Блокируем кнопку отправки
+    const submitButton = form.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.textContent;
+    submitButton.disabled = true;
+    submitButton.textContent = 'Sending...';
+
+    try {
+      // Отправляем данные на сервер
+      const response = await fetch('/wp-admin/admin-ajax.php', {
+        method: 'POST',
+        body: new URLSearchParams({
+          action: 'submit_contact_form',
+          nonce: window.contact_form_nonce || '',
+          firstName: firstName,
+          lastName: lastName,
+          phone: phone,
+          email: email
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Показываем успешное уведомление
+        showNotification('Your message has been sent successfully!', 'success');
+        
+        // Очищаем форму
+        form.reset();
+        
+        // Закрываем попап через 2 секунды
+        setTimeout(() => {
+          closeFormPopup();
+        }, 2000);
+      } else {
+        // Показываем ошибку
+        showNotification(result.data || 'An error occurred. Please try again.', 'error');
+      }
+    } catch (error) {
+      console.error('Form submission error:', error);
+      showNotification('Network error. Please check your connection and try again.', 'error');
+    } finally {
+      // Восстанавливаем кнопку
+      submitButton.disabled = false;
+      submitButton.textContent = originalButtonText;
+    }
+  });
+
+  // Убираем ошибки при вводе
+  form.querySelectorAll('input').forEach(input => {
+    input.addEventListener('input', () => {
+      clearFieldError(input);
+    });
+  });
 }
 
 // Обработчик загрузки метаданных видео

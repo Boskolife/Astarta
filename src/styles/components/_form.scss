@@ -86,11 +86,32 @@
 
         .input_wrap {
             overflow: hidden;
+            position: relative;
 
             &::after {
                 content: url(../images/line_2.svg);
                 display: flex;
                 margin-left: -10px;
+            }
+
+            &.error {
+                &::after {
+                    filter: brightness(0) saturate(100%) invert(27%) sepia(70%) saturate(3461%) hue-rotate(346deg) brightness(91%) contrast(94%);
+                }
+
+                input {
+                    color: #ff4444;
+                }
+            }
+
+            .error-message {
+                position: absolute;
+                bottom: -20px;
+                left: 0;
+                font-size: 12px;
+                color: #ff4444;
+                line-height: 1;
+                animation: slideIn 0.3s ease;
             }
         }
 
@@ -112,5 +133,101 @@
                 color: #AAAAAA;
             }
         }
+
+        button[type="submit"]:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    }
+}
+
+// Стили для уведомлений
+.form-notification {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    max-width: 400px;
+    padding: 20px;
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid $white;
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease;
+    z-index: 200;
+
+    &.show {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    .notification-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        p {
+            margin: 0;
+            font-size: 16px;
+            line-height: 1.4;
+            color: $white;
+        }
+    }
+
+    &.success {
+        border-color: #4CAF50;
+        box-shadow: 0 4px 20px rgba(76, 175, 80, 0.3);
+
+        .notification-content::before {
+            content: "✓";
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: #4CAF50;
+            border-radius: 50%;
+            color: white;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+    }
+
+    &.error {
+        border-color: #ff4444;
+        box-shadow: 0 4px 20px rgba(255, 68, 68, 0.3);
+
+        .notification-content::before {
+            content: "✕";
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: #ff4444;
+            border-radius: 50%;
+            color: white;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+    }
+
+    @include media('<tablet') {
+        top: 20px;
+        right: 20px;
+        left: 20px;
+        max-width: none;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
