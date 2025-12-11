@@ -768,6 +768,18 @@ function updateUIVisibility(sectionIndex) {
       formSection.classList.remove('keep-visible');
     }
   }
+
+  // Управляем видимостью creator-logo
+  const creatorLogo = document.querySelector('.creator-logo');
+  if (creatorLogo) {
+    if (sectionIndex === SEGMENTS.length - 1) {
+      // Показываем creator-logo только в последней секции (форма)
+      creatorLogo.classList.add('visible');
+    } else {
+      // Скрываем creator-logo в других секциях
+      creatorLogo.classList.remove('visible');
+    }
+  }
 }
 
 // Инициализация FullPage.js
